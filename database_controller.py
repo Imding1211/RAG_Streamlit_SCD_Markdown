@@ -197,17 +197,3 @@ class DatabaseController():
             temp_pdf_name = temp_pdf.name
 
         shutil.move(temp_pdf_name, save_path+save_pdf_name)
-
-#-----------------------------------------------------------------------------#
-
-    def markdown_to_document(self, markdown):
-
-        headers_to_split_on = [("#", "Header 1"),("##", "Header 2"),("###", "Header 3")]
-
-        markdown_splitter = MarkdownHeaderTextSplitter(headers_to_split_on)
-
-        documents = markdown_splitter.split_text(markdown)
-
-        print(len(documents))
-
-
