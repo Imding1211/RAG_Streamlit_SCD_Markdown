@@ -153,10 +153,12 @@ if col2.button("更新"):
     with database_status.status('資料更新中...', expanded=True) as update_status:
 
         for file in files:
-            DatabaseController.save_PDF(file)
 
             md_text = PDF_to_Markdown(file, model_lst)
+
             DatabaseController.add_database(file, md_text)
+
+            DatabaseController.save_PDF(file)
             
             st.write(f"{file.name}更新完成。")
 
