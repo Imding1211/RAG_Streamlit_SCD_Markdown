@@ -2,7 +2,7 @@
     "paramater": {
         "prompt": "{context}\n\n---\n\n根據以上資料用繁體中文回答問題: {question}\n",
         "query_num": 5,
-        "database": "database/chroma"
+        "database": "database/default"
     },
     "llm_model": {
         "selected": "gemma2:2b",
@@ -13,12 +13,13 @@
     "embedding_model": {
         "selected": "all-minilm",
         "options": [
-            "all-minilm"
+            "all-minilm",
+            "shaw/dmeta-embedding-zh:latest"
         ]
     },
     "text_splitter": {
-        "chunk_size": 300,
-        "chunk_overlap": 100
+        "chunk_size": 150,
+        "chunk_overlap": 50
     },
     "server": {
         "base_url": "http://localhost:11434"

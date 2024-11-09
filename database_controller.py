@@ -12,6 +12,7 @@ import humanize
 import PyPDF2
 import shutil
 import uuid
+import re
 
 #=============================================================================#
 
@@ -40,11 +41,6 @@ class DatabaseController():
             chunk_overlap      = self.chunk_overlap,
             length_function    = len,
             is_separator_regex = False,
-            )
-
-        self.markdown_splitter = MarkdownTextSplitter(
-            chunk_size         = self.chunk_size,
-            chunk_overlap      = self.chunk_overlap,
             )
 
 #-----------------------------------------------------------------------------#
@@ -94,27 +90,28 @@ class DatabaseController():
 
     def add_chroma(self, pdf, markdown, start_date, end_date, current_version):
 
-        metadata = {
-        "source"        : pdf.stream.name, 
-        "size"          : pdf.stream.size,
-        "chunk_size"    : self.chunk_size,
-        "chunk_overlap" : self.chunk_overlap,
-        "start_date"    : start_date,
-        "end_date"      : end_date,
-        "version"       : current_version + 1,
-        "latest"        : True
-        }
+        markdown_list = self.split_markdown(markdown)
 
-        documents = self.markdown_splitter.create_documents([markdown], [metadata])
+        for md in markdown_list:
 
-        #for md_document in md_documents:
+            metadata = {
+            "raw_text"      : md,
+            "source"        : pdf.stream.name, 
+            "size"          : pdf.stream.size,
+            "chunk_size"    : self.chunk_size,
+            "chunk_overlap" : self.chunk_overlap,
+            "start_date"    : start_date,
+            "end_date"      : end_date,
+            "version"       : current_version + 1,
+            "latest"        : True
+            }
 
-            #documents = self.text_splitter.create_documents([md_document.page_content], [metadata])
+            documents = self.text_splitter.create_documents([md], [metadata])
 
-        ids = [str(uuid.uuid4()) for _ in range(len(documents))]
+            ids = [str(uuid.uuid4()) for _ in range(len(documents))]
 
-        if len(documents):
-            self.database.add_documents(documents, ids=ids)
+            if len(documents):
+                self.database.add_documents(documents, ids=ids)
 
 #-----------------------------------------------------------------------------#
 
@@ -197,3 +194,23 @@ class DatabaseController():
             temp_pdf_name = temp_pdf.name
 
         shutil.move(temp_pdf_name, save_path+save_pdf_name)
+
+#-----------------------------------------------------------------------------#
+
+    def split_markdown(self, markdown):
+
+        tables = re.findall(r'(\|.*\|\n(\|.*\|\n)+)', markdown)
+
+        table_list = [table[0] for table in tables]
+
+        for table in table_list:
+            markdown = markdown.replace(table, '')
+
+        sections = re.split(r"(## .+)", markdown)
+
+        section_list = [sections[i] + sections[i + 1] for i in range(1, len(sections), 2)]
+
+        markdown_list = table_list + section_list
+
+        return markdown_list
+

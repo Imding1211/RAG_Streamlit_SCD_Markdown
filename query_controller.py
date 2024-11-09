@@ -25,10 +25,11 @@ class QueryController():
 
     def generate_results(self, query_text):
         
-        query_results = self.database.similarity_search_with_score(query_text, k=self.query_num, filter={"latest": True})
+        retriever     = self.database.as_retriever(search_kwargs={"k": self.query_num})
+        query_results = retriever.invoke(query_text, filter={"latest": True})
 
         sources = []
-        for doc, _score in query_results:
+        for doc in query_results:
 
             source_name = doc.metadata['source'].split('.')[0] + '_v' + str(doc.metadata['version']) + '.' + doc.metadata['source'].split('.')[-1]
 
@@ -42,7 +43,7 @@ class QueryController():
 
     def generate_prompt(self, query_text, query_results):
         
-        context_text    = "\n\n---\n\n".join([doc.page_content for doc, _score in query_results])
+        context_text    = "\n\n---\n\n".join([doc.metadata['raw_text'] for doc in query_results])
         prompt_template = ChatPromptTemplate.from_template(self.prompt_templt)
         prompt          = prompt_template.format(context=context_text, question=query_text)
 
@@ -56,6 +57,3 @@ class QueryController():
         
         for chunk in stream:
             yield chunk['message']['content']
-
-
-

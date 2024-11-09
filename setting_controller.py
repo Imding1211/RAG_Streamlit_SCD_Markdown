@@ -11,7 +11,7 @@ class SettingController():
 		    "paramater": {
 		        "prompt": "{context}\n\n---\n\n根據以上資料用繁體中文回答問題: {question}\n",
 		        "query_num": 5,
-		        "database": "database/chroma"
+		        "database": "database/default"
 		    },
 		    "llm_model": {
 		        "selected": "gemma2:2b",
@@ -22,7 +22,8 @@ class SettingController():
 		    "embedding_model": {
 		        "selected": "all-minilm",
 		        "options": [
-		            "all-minilm"
+		            "all-minilm",
+		            "shaw/dmeta-embedding-zh:latest"
 		        ]
 		    },
 		    "text_splitter": {
