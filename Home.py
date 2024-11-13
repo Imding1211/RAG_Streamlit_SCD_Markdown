@@ -88,7 +88,7 @@ if question := st.chat_input("輸入問題"):
 #-----------------------------------------------------------------------------#
 
     with st.chat_message("assistant", avatar="🤖"):
-        response = st.write_stream(QueryController.ollama_generator(st.session_state.memory))
+        response = st.write_stream(QueryController.generate_response(st.session_state.memory))
 
         if len(sources):
             st.caption("參考資料來源: " + ", ".join(sources))

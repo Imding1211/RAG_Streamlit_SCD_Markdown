@@ -4,5 +4,4 @@ langchain_chroma
 marker-pdf
 streamlit
 humanize
-ollama
 PyPDF2

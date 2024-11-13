@@ -151,6 +151,8 @@ if "selected_embedding_model" not in st.session_state:
 
 st.title("模型")
 
+#-----------------------------------------------------------------------------#
+
 st.selectbox("請選擇語言模型", 
 	llm_models, 
 	on_change=change_llm_model, 

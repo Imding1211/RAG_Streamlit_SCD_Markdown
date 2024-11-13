@@ -2,9 +2,8 @@
 from langchain_core.prompts import ChatPromptTemplate
 from database_controller import DatabaseController
 from setting_controller import SettingController
+from langchain_ollama import OllamaLLM
 from typing import Dict, Generator
-from ollama import Client
-import ollama
 
 #=============================================================================#
 
@@ -16,7 +15,7 @@ class QueryController():
         self.llm_model         = self.SettingController.setting['llm_model']['selected']
         self.query_num         = self.SettingController.setting['paramater']['query_num']
         self.prompt_templt     = self.SettingController.setting['paramater']['prompt']
-        self.client            = Client(host=self.SettingController.setting['server']['base_url'])
+        self.base_url          = self.SettingController.setting['server']['base_url']
 
         self.DatabaseController = DatabaseController()
         self.database           = self.DatabaseController.database
@@ -51,9 +50,9 @@ class QueryController():
 
 #-----------------------------------------------------------------------------#
 
-    def ollama_generator(self, messages: Dict) -> Generator:
+    def generate_response(self, messages: Dict) -> Generator:
         
-        stream = self.client.chat(model=self.llm_model, messages=messages, stream=True)
+        llm = OllamaLLM(model=self.llm_model, base_url=self.base_url)
         
-        for chunk in stream:
-            yield chunk['message']['content']
+        for chunk in llm.stream(messages):
+            yield chunk
