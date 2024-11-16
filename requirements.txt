@@ -1,6 +1,8 @@
+pip install llama-index-llms-ollama
 langchain_text_splitters
 langchain-ollama
 langchain_chroma
+llama_index
 marker-pdf
 streamlit
 humanize

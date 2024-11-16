@@ -20,4 +20,4 @@ if st.button("還原初始設定"):
 	SettingController.generate_default_setting()
 	st.toast('已還原初始設定。')
 
-st.caption("版本:1.1")
+st.caption("版本:1.3")

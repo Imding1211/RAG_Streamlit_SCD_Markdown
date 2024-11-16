@@ -1,10 +1,10 @@
 
 from database_controller import DatabaseController
 from setting_controller import SettingController
-from marker.convert import convert_single_pdf
-from marker.models import load_all_models
 import streamlit as st
+import subprocess
 import tempfile
+import sys
 
 #=============================================================================#
 
@@ -15,27 +15,7 @@ DatabaseController = DatabaseController()
 
 #=============================================================================#
 
-@st.cache_resource()
-def load_models():
-    return load_all_models()
-
-#-----------------------------------------------------------------------------#
-
-def PDF_to_Markdown(file, model_lst):
-
-    with tempfile.NamedTemporaryFile(suffix=".pdf") as temp_pdf:
-        temp_pdf.write(file.getvalue())
-        temp_pdf.seek(0)
-        temp_pdf_name = temp_pdf.name
-        md_text, images, out_meta = convert_single_pdf(temp_pdf_name, model_lst)
-
-    return md_text
-
-#=============================================================================#
-
 st.set_page_config(layout="wide")
-
-model_lst = load_models()
 
 event_config = {
     "source": st.column_config.TextColumn(
@@ -152,19 +132,23 @@ col1, col2 = st.columns([9,1])
 
 if col2.button("更新"):
 
-    with database_status.status('資料更新中...', expanded=True) as update_status:
+    with database_status.status('資料處理中...', expanded=True) as update_status:
 
         for file in files:
 
-            md_text = PDF_to_Markdown(file, model_lst)
-
-            DatabaseController.add_database(file, md_text)
-
             DatabaseController.save_PDF(file)
-            
-            st.write(f"{file.name}更新完成。")
 
-        update_status.update(label="資料更新完成!", state="complete", expanded=False)
+            st.write(f"{file.name}上傳完成。")
+
+        st.write("PDF解析中...")
+
+        #subprocess.run([f"{sys.executable}", "wait.py"])
+        subprocess.run([f"{sys.executable}", "convert_controller.py"])
+
+        for file in files:
+            DatabaseController.add_database(file)
+
+        update_status.update(label="資料處理完成!", state="complete", expanded=False)
 
 df = DatabaseController.database_to_dataframes()
 

@@ -1,10 +1,16 @@
 
 from langchain_text_splitters import RecursiveCharacterTextSplitter
 from langchain_text_splitters import MarkdownTextSplitter
-from setting_controller import SettingController
 from langchain_core.documents import Document
 from langchain_ollama import OllamaEmbeddings
 from langchain_chroma import Chroma
+
+from llama_index.core.llms import ChatMessage, MessageRole
+from llama_index.core import ChatPromptTemplate
+from llama_index.llms.ollama import Ollama
+
+from setting_controller import SettingController
+
 import pandas as pd
 import tempfile
 import datetime
@@ -12,6 +18,7 @@ import humanize
 import PyPDF2
 import shutil
 import uuid
+import json
 import re
 
 #=============================================================================#
@@ -24,6 +31,7 @@ class DatabaseController():
         self.chunk_size        = self.SettingController.setting['text_splitter']['chunk_size']
         self.chunk_overlap     = self.SettingController.setting['text_splitter']['chunk_overlap']
         database_path          = self.SettingController.setting['paramater']['database']
+        llm_model              = self.SettingController.setting['llm_model']['selected']
         embedding_model        = self.SettingController.setting['embedding_model']['selected']
         base_url               = self.SettingController.setting['server']['base_url']
 
@@ -40,7 +48,14 @@ class DatabaseController():
             chunk_size         = self.chunk_size,
             chunk_overlap      = self.chunk_overlap,
             length_function    = len,
-            is_separator_regex = False,
+            is_separator_regex = False
+            )
+
+        self.llm = Ollama(
+            model='llama3.2-vision:latest', 
+            request_timeout=120.0, 
+            base_url=base_url, 
+            json_mode=True
             )
 
 #-----------------------------------------------------------------------------#
@@ -88,11 +103,17 @@ class DatabaseController():
 
 #-----------------------------------------------------------------------------#
 
-    def add_chroma(self, pdf, markdown, start_date, end_date, current_version):
+    def add_chroma(self, pdf, start_date, end_date, current_version):
 
-        markdown_list = self.split_markdown(markdown)
+        print(pdf.stream.name)
 
-        for md in markdown_list:
+        markdown_content = self.load_markdown(pdf)
+
+        markdown_list = self.split_markdown(markdown_content)
+
+        for index, md in enumerate(markdown_list, 1):
+
+            print(f"Section {index}:")
 
             metadata = {
             "raw_text"      : md,
@@ -106,7 +127,20 @@ class DatabaseController():
             "latest"        : True
             }
 
-            documents = self.text_splitter.create_documents([md], [metadata])
+            sentences = self.decompose_content(md)
+
+            if isinstance(sentences, list):
+                documents = []
+                for index, sentence in enumerate(sentences, 1):
+                    print(f"Sentence {index}:")
+                    print(sentence)
+                    
+                    document = Document(page_content=sentence, metadata=metadata)
+                    documents.append(document)
+
+            else:
+                documents = self.text_splitter.create_documents([md], [metadata])
+                print(md)
 
             ids = [str(uuid.uuid4()) for _ in range(len(documents))]
 
@@ -150,7 +184,7 @@ class DatabaseController():
 
 #-----------------------------------------------------------------------------#
 
-    def add_database(self, file, markdown):
+    def add_database(self, file):
 
         start_date = self.time_now.strftime('%Y/%m/%d %H:%M:%S')
         end_date   = self.time_end.strftime('%Y/%m/%d %H:%M:%S')
@@ -162,7 +196,7 @@ class DatabaseController():
         if current_version > 0:
             self.update_chroma(pdf.stream.name, start_date, False, current_version)
 
-        self.add_chroma(pdf, markdown, start_date, end_date, current_version)
+        self.add_chroma(pdf, start_date, end_date, current_version)
 
 #-----------------------------------------------------------------------------#
 
@@ -184,7 +218,7 @@ class DatabaseController():
 
         save_path = "save_PDF/"
 
-        current_version = self.get_version_list(PyPDF2.PdfReader(file).stream.name)[0]
+        current_version = self.get_version_list(PyPDF2.PdfReader(file).stream.name)[0]+1
 
         save_pdf_name = file.name.split('.')[0] + '_v' + str(current_version) + '.' + file.name.split('.')[-1]
 
@@ -213,4 +247,90 @@ class DatabaseController():
         markdown_list = table_list + section_list
 
         return markdown_list
+
+#-----------------------------------------------------------------------------#
+
+    def load_markdown(self, pdf):
+
+        load_path = "output_MD/"
+
+        current_version = self.get_version_list(pdf.stream.name)[0]+1
+
+        load_md_folder = pdf.stream.name.split('.')[0] + '_v' + str(current_version) + '/'
+
+        load_md_name = pdf.stream.name.split('.')[0] + '_v' + str(current_version) + '.md'
+        
+        with open(load_path+load_md_folder+load_md_name, 'r', encoding="utf-8") as file:
+            markdown_content = file.read()
+        
+        return markdown_content
+
+#-----------------------------------------------------------------------------#
+
+    def decompose_content(self, section):
+
+        message_templates = [
+            ChatMessage(
+                role=MessageRole.SYSTEM,
+                content="""
+                Decompose the "Content" into clear and simple propositions, ensuring they are interpretable out of context.
+
+                1. Split compound sentence into simple sentences. Maintain the original phrasing from the input whenever possible.
+
+                2. For any named entity that is accompanied by additional descriptive information, separate this information into its own distinct proposition.
+
+                3. Decontextualize the proposition by adding necessary modifier to nouns or entire sentences and replacing pronouns (e.g., "it", "he", "she", "they", "this", "that") with the full name of the entities they refer to.
+
+                4. Present the results as a JSON array of strings in the following format: {"sentences": ["sentence1", "sentence2", "sentence3"]}""" ),
+            ChatMessage(
+                role=MessageRole.USER,
+                content="""
+                Title: The Benefits of Morning Exercise. 
+
+                Content: Starting your day with exercise can have a profound impact on your physical and mental well-being. 
+
+                Engaging in morning workouts boosts your energy levels, enhances your mood, and sharpens your focus for the day ahead. 
+
+                Physical activity stimulates the release of endorphins, reducing stress and promoting a sense of happiness.
+
+                Additionally, exercising early helps establish a routine, making it easier to stay consistent. 
+
+                It can also improve sleep quality by regulating your body’s natural clock. 
+
+                Whether it’s a brisk walk, a yoga session, or a gym workout, even 20–30 minutes can make a difference.
+
+                Embrace the habit of morning exercise and experience a more productive and healthier lifestyle. 
+
+                It’s a small change that can lead to significant, long-lasting benefits."""),
+            ChatMessage(
+                role=MessageRole.ASSISTANT ,
+                content="""
+                sentences=[
+                'The Benefits of Morning Exercise', 
+                'Starting your day with exercise can have a profound impact on your physical and mental well-being.', 
+                'Engaging in morning workouts boosts your energy levels, enhances your mood, and sharpens your focus for the day ahead.', 
+                'Physical activity stimulates the release of endorphins, reducing stress and promoting a sense of happiness.', 
+                'Additionally, exercising early helps establish a routine, making it easier to stay consistent.', 
+                'It can also improve sleep quality by regulating your body’s natural clock.', 
+                'Whether it’s a brisk walk, a yoga session, or a gym workout, even 20–30 minutes can make a difference.', 
+                'Embrace the habit of morning exercise and experience a more productive and healthier lifestyle.', 
+                'It’s a small change that can lead to significant, long-lasting benefits.']"""),
+            ChatMessage(
+                role=MessageRole.USER,
+                content="""
+                Decompose the following:{review_text}"""),
+            ]
+
+        decompose_templates = ChatPromptTemplate(message_templates=message_templates)
+
+        messages = decompose_templates.format_messages(review_text=section)
+
+        response = self.llm.chat(messages)
+
+        try:
+            response_json = json.loads(response.message.content)
+            return response_json["sentences"]
+
+        except:
+            return response.message.content
 
