@@ -1,5 +1,5 @@
-pip install llama-index-llms-ollama
 langchain_text_splitters
+llama-index-llms-ollama
 langchain-ollama
 langchain_chroma
 llama_index
