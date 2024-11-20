@@ -143,7 +143,7 @@ if col2.button("更新"):
         st.write("PDF解析中...")
 
         #subprocess.run([f"{sys.executable}", "wait.py"])
-        subprocess.run([f"{sys.executable}", "convert_controller.py"])
+        #subprocess.run([f"{sys.executable}", "convert_controller.py"])
 
         for file in files:
             DatabaseController.add_database(file)

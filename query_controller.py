@@ -46,6 +46,8 @@ class QueryController():
         prompt_template = ChatPromptTemplate.from_template(self.prompt_templt)
         prompt          = prompt_template.format(context=context_text, question=query_text)
 
+        print(prompt)
+
         return prompt
 
 #-----------------------------------------------------------------------------#
