@@ -145,6 +145,9 @@ class SettingController():
 
 			self.setting['llm_model']['options'].remove(model_name)
 
+			if self.setting['llm_model']['selected'] == model_name:
+				self.setting['llm_model']['selected'] = self.setting['llm_model']['options'][0]
+
 			self.generate_setting(self.setting)
 
 #-----------------------------------------------------------------------------#
@@ -154,5 +157,8 @@ class SettingController():
 		if len(model_name) > 0:
 
 			self.setting['embedding_model']['options'].remove(model_name)
+
+			if self.setting['embedding_model']['selected'] == model_name:
+				self.setting['embedding_model']['selected'] = self.setting['embedding_model']['options'][0]
 
 			self.generate_setting(self.setting)
