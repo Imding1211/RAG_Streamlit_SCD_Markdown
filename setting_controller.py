@@ -14,15 +14,16 @@ class SettingController():
 		        "database": "database/default"
 		    },
 		    "llm_model": {
-		        "selected": "gemma2:2b",
+		        "selected": "llama3.2:3b",
 		        "options": [
+		        	"llama3.2:3b",
 		            "gemma2:2b"
 		        ]
 		    },
 		    "embedding_model": {
-		        "selected": "all-minilm",
+		        "selected": "all-minilm:latest",
 		        "options": [
-		            "all-minilm",
+		            "all-minilm:latest",
 		            "shaw/dmeta-embedding-zh:latest"
 		        ]
 		    },

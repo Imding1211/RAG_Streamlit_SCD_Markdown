@@ -134,18 +134,15 @@ if col2.button("更新"):
 
     with database_status.status('資料處理中...', expanded=True) as update_status:
 
-        for file in files:
-            DatabaseController.save_PDF(file)
-            st.write(f"{file.name}上傳完成。")
+        DatabaseController.save_PDF(files)
 
-        st.write("PDF解析中...")
         subprocess.run([f"{sys.executable}", "convert_controller.py"])
-        #subprocess.run([f"{sys.executable}", "wait.py"])
 
-        for file in files:
-            DatabaseController.add_database(file)
+        DatabaseController.add_database(files)
 
         update_status.update(label="資料處理完成!", state="complete", expanded=False)
+
+#-----------------------------------------------------------------------------#
 
 df = DatabaseController.database_to_dataframes()
 

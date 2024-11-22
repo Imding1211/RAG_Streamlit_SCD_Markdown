@@ -52,7 +52,7 @@ class DatabaseController():
             )
 
         self.llm = Ollama(
-            model='llama3.2:latest', 
+            model='llama3.2:3b', 
             request_timeout=120.0, 
             base_url=base_url, 
             json_mode=True
@@ -113,79 +113,25 @@ class DatabaseController():
 
         PDF_info = self.create_propositions(PDF_info)
 
-        self.save_json(PDF_info)
+        self.save_json(PDF_info, current_version)
+
+        #PDF_info = self.load_json(pdf.stream.name.split('.')[0], current_version)
         
-        #PDF_info = self.load_json()
-        
+        documents = []
         for info in PDF_info["sections"]:
-            
-            if isinstance(info["content"]["text"]["propositions"], list):
 
-                info["content"]["text"]["propositions"] = [proposition for proposition in info["content"]["text"]["propositions"] if proposition != ""]
-
-                documents = []
-                for proposition in info["content"]["text"]["propositions"]:
-
-                    print(proposition)
-
-                    metadata = {
-                    "raw_text"      : info["content"]["text"]["raw_text"],
-                    "source"        : pdf.stream.name, 
-                    "size"          : pdf.stream.size,
-                    "chunk_size"    : self.chunk_size,
-                    "chunk_overlap" : self.chunk_overlap,
-                    "start_date"    : start_date,
-                    "end_date"      : end_date,
-                    "version"       : current_version + 1,
-                    "latest"        : True
-                    }
-
-                    document = Document(page_content=str(proposition), metadata=metadata)
-                    documents.append(document)
-
-            else:
-                documents = self.text_splitter.create_documents([str(info["content"]["text"]["propositions"])], [metadata])
-                
-            ids = [str(uuid.uuid4()) for _ in range(len(documents))]
-
-            if len(documents):
-                self.database.add_documents(documents, ids=ids)
+            documents = self.propositions_to_documents(pdf, info["content"]["text"], documents, start_date, end_date, current_version)
             
             if len(info["content"]["table"]):
 
                 for table in info["content"]["table"]:
 
-                    if isinstance(table["propositions"], list):
+                    documents = self.propositions_to_documents(pdf, table, documents, start_date, end_date, current_version)
 
-                        table["propositions"] = [proposition for proposition in table["propositions"] if proposition != ""]
+        ids = [str(uuid.uuid4()) for _ in range(len(documents))]
 
-                        documents = []
-                        for proposition in table["propositions"]:
-
-                            print(proposition)
-
-                            metadata = {
-                            "raw_text"      : table["raw_text"],
-                            "source"        : pdf.stream.name, 
-                            "size"          : pdf.stream.size,
-                            "chunk_size"    : self.chunk_size,
-                            "chunk_overlap" : self.chunk_overlap,
-                            "start_date"    : start_date,
-                            "end_date"      : end_date,
-                            "version"       : current_version + 1,
-                            "latest"        : True
-                            }
-
-                            document = Document(page_content=str(proposition), metadata=metadata)
-                            documents.append(document)
-
-                    else:
-                        documents = self.text_splitter.create_documents([str(table["propositions"])], [metadata])
-
-                    ids = [str(uuid.uuid4()) for _ in range(len(documents))]
-
-                    if len(documents):
-                        self.database.add_documents(documents, ids=ids)
+        if len(documents):
+            self.database.add_documents(documents, ids=ids)
 
 #-----------------------------------------------------------------------------#
 
@@ -224,19 +170,21 @@ class DatabaseController():
 
 #-----------------------------------------------------------------------------#
 
-    def add_database(self, file):
+    def add_database(self, files):
 
         start_date = self.time_now.strftime('%Y/%m/%d %H:%M:%S')
         end_date   = self.time_end.strftime('%Y/%m/%d %H:%M:%S')
 
-        pdf = PyPDF2.PdfReader(file)
+        for file in files:
 
-        current_version = self.get_version_list(pdf.stream.name)[0]
+            pdf = PyPDF2.PdfReader(file)
 
-        if current_version > 0:
-            self.update_chroma(pdf.stream.name, start_date, False, current_version)
+            current_version = self.get_version_list(pdf.stream.name)[0]
 
-        self.add_chroma(pdf, start_date, end_date, current_version)
+            if current_version > 0:
+                self.update_chroma(pdf.stream.name, start_date, False, current_version)
+
+            self.add_chroma(pdf, start_date, end_date, current_version)
 
 #-----------------------------------------------------------------------------#
 
@@ -251,72 +199,6 @@ class DatabaseController():
             if rollback_version == version_list[0] and len(version_list) > 1:
 
                 self.update_chroma(rollback_source, end_date, True, version_list[1])
-
-#-----------------------------------------------------------------------------#
-
-    def save_PDF(self, file):
-
-        save_path = "save_PDF/"
-
-        current_version = self.get_version_list(PyPDF2.PdfReader(file).stream.name)[0]+1
-
-        save_pdf_name = file.name.split('.')[0] + '_v' + str(current_version) + '.pdf'
-
-        with tempfile.NamedTemporaryFile(suffix=".pdf", delete=False) as temp_pdf:
-            temp_pdf.write(file.getvalue())
-            temp_pdf.seek(0)
-            temp_pdf_name = temp_pdf.name
-
-        shutil.move(temp_pdf_name, save_path+save_pdf_name)
-
-#-----------------------------------------------------------------------------#
-
-    def save_json(self, PDF_info):
-
-        path = "output_json/"
-
-        #current_version = self.get_version_list(PyPDF2.PdfReader(file).stream.name)[0]+1
-
-        #save_json_name = file.name.split('.')[0] + '_v' + str(current_version) + '.json'
-
-        json_name = PDF_info["PDF_name"] + '.json'
-
-        with open(path+json_name, 'w', encoding='utf-8') as file:
-            file.write(json.dumps(PDF_info, indent=4, ensure_ascii=False))
-
-#-----------------------------------------------------------------------------#
-
-    def load_json(self):
-
-        path = "output_json/"
-
-        #current_version = self.get_version_list(PyPDF2.PdfReader(file).stream.name)[0]+1
-
-        #save_json_name = file.name.split('.')[0] + '_v' + str(current_version) + '.json'
-
-        json_name = '員工請假管理程序(GEP-CW-2-07)V4.json'
-
-        with open(path+json_name, 'r', encoding='utf-8') as file:
-            PDF_info = json.load(file)
-
-        return PDF_info
-
-#-----------------------------------------------------------------------------#
-
-    def load_markdown(self, pdf):
-
-        path = "output_MD/"
-
-        current_version = self.get_version_list(pdf.stream.name)[0]+1
-
-        markdown_folder = pdf.stream.name.split('.')[0] + '_v' + str(current_version) + '/'
-
-        markdown_name = pdf.stream.name.split('.')[0] + '_v' + str(current_version) + '.md'
-        
-        with open(path+markdown_folder+markdown_name, 'r', encoding="utf-8") as file:
-            markdown = file.read()
-        
-        return markdown
 
 #-----------------------------------------------------------------------------#
 
@@ -509,6 +391,7 @@ class DatabaseController():
                 text_response_json = json.loads(text_response.message.content)
                 for index, proposition in enumerate(text_response_json["propositions"], 1):
                     info['content']['text']['propositions'].append(proposition)
+                    print(proposition)
 
             except:
                 info['content']['text']['propositions'] = text_response.message.content
@@ -524,8 +407,98 @@ class DatabaseController():
                         table_response_json = json.loads(table_response.message.content)
                         for index, proposition in enumerate(table_response_json["propositions"], 1):
                             table_info['propositions'].append(proposition)
+                            print(proposition)
 
                     except:
                         table_info['propositions'] = table_response.message.content
 
         return PDF_info
+
+#-----------------------------------------------------------------------------#
+
+    def propositions_to_documents(self, pdf, propositions, documents, start_date, end_date, current_version):
+
+        metadata = {
+                "raw_text"      : propositions["raw_text"],
+                "source"        : pdf.stream.name, 
+                "size"          : pdf.stream.size,
+                "chunk_size"    : self.chunk_size,
+                "chunk_overlap" : self.chunk_overlap,
+                "start_date"    : start_date,
+                "end_date"      : end_date,
+                "version"       : current_version + 1,
+                "latest"        : True
+                }
+
+        if isinstance(propositions["propositions"], list):
+
+            propositions["propositions"] = [proposition for proposition in propositions["propositions"] if proposition.strip()]
+
+            for proposition in propositions["propositions"]:
+                document = Document(page_content=str(proposition), metadata=metadata)
+                documents.append(document)
+
+        else:
+            documents = self.text_splitter.create_documents([str(propositions["propositions"])], [metadata])
+
+        return documents
+
+#-----------------------------------------------------------------------------#
+
+    def save_PDF(self, files):
+
+        for file in files:
+
+            save_path = "save_PDF/"
+
+            current_version = self.get_version_list(PyPDF2.PdfReader(file).stream.name)[0]+1
+
+            save_pdf_name = file.name.split('.')[0] + '_v' + str(current_version) + '.pdf'
+
+            with tempfile.NamedTemporaryFile(suffix=".pdf", delete=False) as temp_pdf:
+                temp_pdf.write(file.getvalue())
+                temp_pdf.seek(0)
+                temp_pdf_name = temp_pdf.name
+
+            shutil.move(temp_pdf_name, save_path+save_pdf_name)
+
+#-----------------------------------------------------------------------------#
+
+    def save_json(self, PDF_info, current_version):
+
+        path = "output_json/"
+
+        save_json_name = PDF_info["PDF_name"] + '_v' + str(current_version+1) + '.json'
+
+        with open(path+save_json_name, 'w', encoding='utf-8') as file:
+            file.write(json.dumps(PDF_info, indent=4, ensure_ascii=False))
+
+#-----------------------------------------------------------------------------#
+
+    def load_json(self, json_name, current_version):
+
+        path = "output_json/"
+
+        load_json_name = json_name + '_v' + str(current_version+1) + '.json'
+
+        with open(path+load_json_name, 'r', encoding='utf-8') as file:
+            PDF_info = json.load(file)
+
+        return PDF_info
+
+#-----------------------------------------------------------------------------#
+
+    def load_markdown(self, pdf):
+
+        path = "output_MD/"
+
+        current_version = self.get_version_list(pdf.stream.name)[0]+1
+
+        markdown_folder = pdf.stream.name.split('.')[0] + '_v' + str(current_version) + '/'
+
+        markdown_name = pdf.stream.name.split('.')[0] + '_v' + str(current_version) + '.md'
+        
+        with open(path+markdown_folder+markdown_name, 'r', encoding="utf-8") as file:
+            markdown = file.read()
+        
+        return markdown
