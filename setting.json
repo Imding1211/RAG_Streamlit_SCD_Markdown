@@ -5,10 +5,9 @@
         "database": "database/default"
     },
     "llm_model": {
-        "selected": "llama3.2:latest",
+        "selected": "gemma2:2b",
         "options": [
-            "gemma2:2b",
-            "llama3.2:latest"
+            "gemma2:2b"
         ]
     },
     "embedding_model": {
@@ -23,6 +22,6 @@
         "chunk_overlap": 50
     },
     "server": {
-        "base_url": "http://10.199.1.230:8082/"
+        "base_url": "http://localhost:11434"
     }
 }

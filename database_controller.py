@@ -52,7 +52,7 @@ class DatabaseController():
             )
 
         self.llm = Ollama(
-            model='llama3.2-vision:latest', 
+            model='llama3.2:latest', 
             request_timeout=120.0, 
             base_url=base_url, 
             json_mode=True
@@ -107,19 +107,21 @@ class DatabaseController():
 
         print(pdf.stream.name)
 
-        #markdown = self.load_markdown(pdf)
+        markdown = self.load_markdown(pdf)
 
-        #PDF_info = self.markdown_to_section(markdown, pdf.stream.name.split('.')[0])
+        PDF_info = self.markdown_to_section(markdown, pdf.stream.name.split('.')[0])
 
-        #PDF_info = self.create_propositions(PDF_info)
+        PDF_info = self.create_propositions(PDF_info)
 
-        #self.save_json(PDF_info)
+        self.save_json(PDF_info)
         
-        PDF_info = self.load_json()
-
+        #PDF_info = self.load_json()
+        
         for info in PDF_info["sections"]:
             
             if isinstance(info["content"]["text"]["propositions"], list):
+
+                info["content"]["text"]["propositions"] = [proposition for proposition in info["content"]["text"]["propositions"] if proposition != ""]
 
                 documents = []
                 for proposition in info["content"]["text"]["propositions"]:
@@ -142,7 +144,7 @@ class DatabaseController():
                     documents.append(document)
 
             else:
-                documents = self.text_splitter.create_documents([info["content"]["text"]["propositions"]], [metadata])
+                documents = self.text_splitter.create_documents([str(info["content"]["text"]["propositions"])], [metadata])
                 
             ids = [str(uuid.uuid4()) for _ in range(len(documents))]
 
@@ -154,7 +156,8 @@ class DatabaseController():
                 for table in info["content"]["table"]:
 
                     if isinstance(table["propositions"], list):
-                        print(table["propositions"])
+
+                        table["propositions"] = [proposition for proposition in table["propositions"] if proposition != ""]
 
                         documents = []
                         for proposition in table["propositions"]:
@@ -177,7 +180,7 @@ class DatabaseController():
                             documents.append(document)
 
                     else:
-                        documents = self.text_splitter.create_documents([info["content"]["text"]["propositions"]], [metadata])
+                        documents = self.text_splitter.create_documents([str(table["propositions"])], [metadata])
 
                     ids = [str(uuid.uuid4()) for _ in range(len(documents))]
 
@@ -317,25 +320,6 @@ class DatabaseController():
 
 #-----------------------------------------------------------------------------#
 
-    def split_markdown(self, markdown):
-
-        tables = re.findall(r'(\|.*\|\n(\|.*\|\n)+)', markdown)
-
-        table_list = [table[0] for table in tables]
-
-        for table in table_list:
-            markdown = markdown.replace(table, '')
-
-        sections = re.split(r"(## .+)", markdown)
-
-        section_list = [sections[i] + sections[i + 1] for i in range(1, len(sections), 2)]
-
-        markdown_list = table_list + section_list
-
-        return markdown_list
-
-#-----------------------------------------------------------------------------#
-
     def markdown_to_section(self, markdown, PDF_name):
 
         PDF_info = {
@@ -395,124 +379,130 @@ class DatabaseController():
 
     def create_propositions(self, PDF_info):
 
-        text_decompose_prompt = [
+        text_decompose_prompt  = [
             ChatMessage(
                 role=MessageRole.SYSTEM,
                 content="""
-                Decompose the "Content" into clear and simple propositions, ensuring they are interpretable out of context.
+                將「內容」分解為清晰且簡單的命題，確保這些命題在脫離上下文的情況下也能被理解。
 
-                1. Split compound sentence into simple sentences. Maintain the original phrasing from the input whenever possible.
+                1. 將複合句分割成簡單句，儘可能保留輸入中的原始措辭。
 
-                2. For any named entity that is accompanied by additional descriptive information, separate this information into its own distinct proposition.
+                2. 如果命名實體附帶描述性資訊，將這些資訊拆分為獨立的命題。
 
-                3. Decontextualize the proposition by adding necessary modifier to nouns or entire sentences and replacing pronouns (e.g., "it", "he", "she", "they", "this", "that") with the full name of the entities they refer to.
+                3. 通過添加必要的修飾詞，使命題去脈絡化。例如，將代名詞（例如 "它"、"他"、"她"、"他們"、"這個"、"那個"）替換為它們所指代的完整實體名稱。
 
-                4. Present the results as a JSON array of strings in the following format: {"propositions": ["sentence1", "sentence2", "sentence3"]}""" ),
+                4. 以 JSON 格式輸出結果，格式如下：: {"propositions": ["句子1", "句子2", "句子3"]}""" ),
             ChatMessage(
                 role=MessageRole.USER,
                 content="""
-                Title: The Benefits of Morning Exercise. 
+                請使用繁體中文分解以下內容:
 
-                Content: Starting your day with exercise can have a profound impact on your physical and mental well-being. 
+                Title: 晨間運動的好處 
 
-                Engaging in morning workouts boosts your energy levels, enhances your mood, and sharpens your focus for the day ahead. 
+                Content: 開始一天時進行運動，對身體與心理健康會產生深遠的影響。
 
-                Physical activity stimulates the release of endorphins, reducing stress and promoting a sense of happiness.
+                晨間運動能提升精力、改善心情，並提高一天的專注力。
 
-                Additionally, exercising early helps establish a routine, making it easier to stay consistent. 
+                身體活動會刺激內啡肽的釋放，減輕壓力並帶來幸福感。
 
-                It can also improve sleep quality by regulating your body’s natural clock. 
+                此外，早晨運動有助於建立規律的生活習慣，使保持持續性變得更容易。
 
-                Whether it’s a brisk walk, a yoga session, or a gym workout, even 20–30 minutes can make a difference.
+                還能通過調節身體的自然時鐘來改善睡眠品質。
 
-                Embrace the habit of morning exercise and experience a more productive and healthier lifestyle. 
+                無論是快走、瑜伽課，還是健身房運動，甚至只需要20到30分鐘，也能帶來顯著的效果。
 
-                It’s a small change that can lead to significant, long-lasting benefits."""),
+                養成晨間運動的習慣，將體驗到更有成效且更健康的生活方式。
+
+                這是一個小小的改變，卻能帶來顯著且持久的益處。"""),
             ChatMessage(
                 role=MessageRole.ASSISTANT ,
                 content="""
                 propositions=[
-                'The Benefits of Morning Exercise', 
-                'Starting your day with exercise can have a profound impact on your physical and mental well-being.', 
-                'Engaging in morning workouts boosts your energy levels, enhances your mood, and sharpens your focus for the day ahead.', 
-                'Physical activity stimulates the release of endorphins, reducing stress and promoting a sense of happiness.', 
-                'Additionally, exercising early helps establish a routine, making it easier to stay consistent.', 
-                'It can also improve sleep quality by regulating your body’s natural clock.', 
-                'Whether it’s a brisk walk, a yoga session, or a gym workout, even 20–30 minutes can make a difference.', 
-                'Embrace the habit of morning exercise and experience a more productive and healthier lifestyle.', 
-                'It’s a small change that can lead to significant, long-lasting benefits.']"""),
+                    '晨間運動的好處',
+                    '開始一天時進行運動，能對你的身體與心理健康產生深遠的影響。',
+                    '參與晨間運動可以提升你的精力、改善心情，並提高一天的專注力。',
+                    '身體活動會刺激內啡肽的釋放，減輕壓力並促進幸福感。',
+                    '此外，早晨運動有助於建立規律的生活習慣，使保持持續性變得更容易。',
+                    '它還能通過調節身體的自然時鐘來改善睡眠品質。',
+                    '無論是快走、瑜伽課還是健身房運動，甚至只需20到30分鐘，也能帶來顯著的效果。',
+                    '養成晨間運動的習慣，將讓你體驗到更有成效且更健康的生活方式。',
+                    '這是一個小小的改變，卻能帶來顯著且持久的益處。']"""),
             ChatMessage(
                 role=MessageRole.USER,
                 content="""
-                Decompose the following:Title:{title} Content:{content}
-                If the Content is in English, use English; if the Content is in Traditional Chinese, use Traditional Chinese."""),
+                請使用繁體中文分解以下內容:Title:{title} Content:{content}"""),
             ]
-
-        text_decompose_template  = ChatPromptTemplate(message_templates=text_decompose_prompt)
 
         table_decompose_prompt = [
             ChatMessage(
                 role=MessageRole.SYSTEM,
                 content="""
-                Analyze the Table and write a summary based on the table.
+                分析表格並基於表格內容撰寫摘要。
 
-                1. Choose Language:If the table is in English, use English; if it is in Traditional Chinese, use Traditional Chinese.
+                1. 提供清晰且簡潔的描述，描述每一行中的關鍵資訊，避免冗長或不必要的細節。
 
-                2. Provide a clear and concise description of the key information in each row.
+                2. 摘要需突出主要數據點與重要特徵，針對數值型數據，強調極值（例如最大值或最小值）、趨勢或明顯的異常。
 
-                3. Ensure that the summary highlights the main data points and significant features.
+                3. 若為分類型數據，則重點說明具代表性或高頻的類別。
 
-                4. Present the results as a JSON array of strings in the following format: {"propositions": ["sentence1", "sentence2", "sentence3"]}""" ),
+                4. 若某些列的內容相似度極高，可合併處理並概括為一條命題。
+
+                5. 可在摘要的末尾加入簡短的總結，概述整體表格的核心意義或結論，例如「此表格展示了...的主要趨勢」。
+
+                6. 以 JSON 格式輸出結果，格式如下：: {"propositions": ["句子1", "句子2", "句子3"]}""" ),
             ChatMessage(
                 role=MessageRole.USER,
                 content="""
-                | CPU                          | Pentium 4 1.8 GHz         |
-                |------------------------------|---------------------------|
-                | OS                           | Redhat 7.3 (Linux 2.4.18) |
-                | Main\-memory size            | 1 GB RDRAM                |
-                | Trace Cache                  | 12 K micro\-ops           |
-                | ITLB                         | 128 entries               |
-                | L1 data cache size           | 16 KB                     |
-                | L1 data cacheline size       | 64 bytes                  |
-                | L2 cache size                | 256 KB                    |
-                | L2 cacheline size            | 128 bytes                 |
-                | Trace Cache miss latency     | > 27 cycles               |
-                | L1 data miss latency         | 18 cycles                 |
-                | L2 miss latency              | 276 cycles                |
-                | Branch misprediction latency | > 20 cycles               |
-                | Hardware prefetch            | Yes                       |
-                | C Compiler                   | GNU's gcc 3.2             |"""),
+                請使用繁體中文分析以下表格並基於表格內容撰寫摘要:
+
+                Table:| CPU                          | Pentium 4 1.8 GHz         |
+                      |------------------------------|---------------------------|
+                      | OS                           | Redhat 7.3 (Linux 2.4.18) |
+                      | Main-memory size             | 1 GB RDRAM                |
+                      | Trace Cache                  | 12 K micro-ops            |
+                      | ITLB                         | 128 entries               |
+                      | L1 data cache size           | 16 KB                     |
+                      | L1 data cacheline size       | 64 bytes                  |
+                      | L2 cache size                | 256 KB                    |
+                      | L2 cacheline size            | 128 bytes                 |
+                      | Trace Cache miss latency     | > 27 cycles               |
+                      | L1 data miss latency         | 18 cycles                 |
+                      | L2 miss latency              | 276 cycles                |
+                      | Branch misprediction latency | > 20 cycles               |
+                      | Hardware prefetch            | Yes                       |
+                      | C Compiler                   | GNU's gcc 3.2             |"""),
             ChatMessage(
                 role=MessageRole.ASSISTANT ,
                 content="""
                 propositions=[
-                'This table provides specifications for a computing system, detailing the CPU, memory, cache, and performance characteristics:',
-                'CPU: Powered by a Pentium 4 1.8 GHz processor.',
-                'Operating System: Runs on Redhat 7.3 with Linux kernel version 2.4.18.',
-                'Memory: Equipped with 1 GB of RDRAM.',
-                'Trace Cache: Holds 12K micro-ops.',
-                'Instruction TLB: Contains 128 entries.',
-                'L1 Data Cache: Size of 16 KB with a cacheline size of 64 bytes.',
-                'L2 Cache: Size of 256 KB with a cacheline size of 128 bytes.',
-                'Trace Cache Miss: Greater than 27 cycles.',
-                'L1 Data Cache Miss: 18 cycles.',
-                'L2 Cache Miss: 276 cycles.',
-                'Branch Misprediction: Penalty exceeds 20 cycles.',
-                'Hardware Prefetch: Enabled.',
-                'Compiler: Uses GNU's gcc version 3.2.']"""),
+                    '此表格提供了一個計算系統的規格，詳細列出 CPU、記憶體、快取及效能特性：',
+                    'CPU：使用 Pentium 4 1.8 GHz 處理器。',
+                    '操作系統：運行於 Redhat 7.3，採用 Linux 核心版本 2.4.18。',
+                    '記憶體：配備 1 GB 的 RDRAM。',
+                    '指令追蹤快取（Trace Cache）：容量為 12K 微操作（micro-ops）。',
+                    '指令 TLB：包含 128 個條目。',
+                    'L1 資料快取：大小為 16 KB，快取線大小為 64 字節。',
+                    'L2 快取：大小為 256 KB，快取線大小為 128 字節。',
+                    '指令追蹤快取未命中：延遲超過 27 個週期。',
+                    'L1 資料快取未命中：延遲為 18 個週期。',
+                    'L2 快取未命中：延遲為 276 個週期。',
+                    '分支預測錯誤：懲罰超過 20 個週期。',
+                    '硬體預取（Hardware Prefetch）：已啟用。',
+                    '編譯器：使用 GNU 的 gcc 版本 3.2。']"""),
             ChatMessage(
                 role=MessageRole.USER,
                 content="""
-                Analyze the Table and write a summary based on following table:Table:{table}
-                If the Table is in English, use English; if the Table is in Traditional Chinese, use Traditional Chinese."""),
+                請使用繁體中文分析以下表格並基於表格內容撰寫摘要:Table:{table}"""),
             ]
+
+        text_decompose_template  = ChatPromptTemplate(message_templates=text_decompose_prompt)
 
         table_decompose_template = ChatPromptTemplate(message_templates=table_decompose_prompt)
 
         for info in PDF_info['sections']:
             
             text_messages = text_decompose_template.format_messages(title=info['title'], content=info['content']['text']['raw_text'])
-
+            
             text_response = self.llm.chat(text_messages)
 
             try:
@@ -538,74 +528,4 @@ class DatabaseController():
                     except:
                         table_info['propositions'] = table_response.message.content
 
-        return PDF_info            
-
-#-----------------------------------------------------------------------------#
-
-    def decompose_content(self, section):
-
-        message_templates = [
-            ChatMessage(
-                role=MessageRole.SYSTEM,
-                content="""
-                Decompose the "Content" into clear and simple propositions, ensuring they are interpretable out of context.
-
-                1. Split compound sentence into simple sentences. Maintain the original phrasing from the input whenever possible.
-
-                2. For any named entity that is accompanied by additional descriptive information, separate this information into its own distinct proposition.
-
-                3. Decontextualize the proposition by adding necessary modifier to nouns or entire sentences and replacing pronouns (e.g., "it", "he", "she", "they", "this", "that") with the full name of the entities they refer to.
-
-                4. Present the results as a JSON array of strings in the following format: {"sentences": ["sentence1", "sentence2", "sentence3"]}""" ),
-            ChatMessage(
-                role=MessageRole.USER,
-                content="""
-                Title: The Benefits of Morning Exercise. 
-
-                Content: Starting your day with exercise can have a profound impact on your physical and mental well-being. 
-
-                Engaging in morning workouts boosts your energy levels, enhances your mood, and sharpens your focus for the day ahead. 
-
-                Physical activity stimulates the release of endorphins, reducing stress and promoting a sense of happiness.
-
-                Additionally, exercising early helps establish a routine, making it easier to stay consistent. 
-
-                It can also improve sleep quality by regulating your body’s natural clock. 
-
-                Whether it’s a brisk walk, a yoga session, or a gym workout, even 20–30 minutes can make a difference.
-
-                Embrace the habit of morning exercise and experience a more productive and healthier lifestyle. 
-
-                It’s a small change that can lead to significant, long-lasting benefits."""),
-            ChatMessage(
-                role=MessageRole.ASSISTANT ,
-                content="""
-                sentences=[
-                'The Benefits of Morning Exercise', 
-                'Starting your day with exercise can have a profound impact on your physical and mental well-being.', 
-                'Engaging in morning workouts boosts your energy levels, enhances your mood, and sharpens your focus for the day ahead.', 
-                'Physical activity stimulates the release of endorphins, reducing stress and promoting a sense of happiness.', 
-                'Additionally, exercising early helps establish a routine, making it easier to stay consistent.', 
-                'It can also improve sleep quality by regulating your body’s natural clock.', 
-                'Whether it’s a brisk walk, a yoga session, or a gym workout, even 20–30 minutes can make a difference.', 
-                'Embrace the habit of morning exercise and experience a more productive and healthier lifestyle.', 
-                'It’s a small change that can lead to significant, long-lasting benefits.']"""),
-            ChatMessage(
-                role=MessageRole.USER,
-                content="""
-                Decompose the following:{review_text}"""),
-            ]
-
-        decompose_templates = ChatPromptTemplate(message_templates=message_templates)
-
-        messages = decompose_templates.format_messages(review_text=section)
-
-        response = self.llm.chat(messages)
-
-        try:
-            response_json = json.loads(response.message.content)
-            return response_json["sentences"]
-
-        except:
-            return response.message.content
-
+        return PDF_info
