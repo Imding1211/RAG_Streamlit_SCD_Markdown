@@ -105,17 +105,19 @@ class DatabaseController():
 
     def add_chroma(self, pdf, start_date, end_date, current_version):
 
-        print(pdf.stream.name)
+        PDF_name = pdf.stream.name.split('.')[0]
 
-        markdown = self.load_markdown(pdf)
+        print(PDF_name)
 
-        PDF_info = self.markdown_to_section(markdown, pdf.stream.name.split('.')[0])
+        markdown = self.load_markdown(PDF_name, current_version)
+
+        PDF_info = self.markdown_to_section(PDF_name, markdown, current_version)
 
         PDF_info = self.create_propositions(PDF_info)
 
-        self.save_json(PDF_info, current_version)
+        self.save_json(PDF_name, PDF_info, current_version)
 
-        #PDF_info = self.load_json(pdf.stream.name.split('.')[0], current_version)
+        #PDF_info = self.load_json(PDF_name, current_version)
         
         documents = []
         for info in PDF_info["sections"]:
@@ -147,14 +149,14 @@ class DatabaseController():
             if old_metadata['version'] == current_version:
 
                 updated_metedata = {
-                "source"        : old_metadata['source'], 
-                "size"          : old_metadata['size'],
-                "chunk_size"    : old_metadata['chunk_size'],
-                "chunk_overlap" : old_metadata['chunk_overlap'],
-                "start_date"    : old_metadata['start_date'],
-                "end_date"      : date,
-                "version"       : old_metadata['version'],
-                "latest"        : latest
+                    "source"        : old_metadata['source'], 
+                    "size"          : old_metadata['size'],
+                    "chunk_size"    : old_metadata['chunk_size'],
+                    "chunk_overlap" : old_metadata['chunk_overlap'],
+                    "start_date"    : old_metadata['start_date'],
+                    "end_date"      : date,
+                    "version"       : old_metadata['version'],
+                    "latest"        : latest
                 }
 
                 new_documents.append(Document(page_content=old_document, metadata=updated_metedata))
@@ -202,7 +204,7 @@ class DatabaseController():
 
 #-----------------------------------------------------------------------------#
 
-    def markdown_to_section(self, markdown, PDF_name):
+    def markdown_to_section(self, PDF_name, markdown, current_version):
 
         PDF_info = {
             "PDF_name" : PDF_name,
@@ -220,15 +222,18 @@ class DatabaseController():
                         "raw_text" : "",
                         "propositions" : []
                     },
-                    "table" : []
+                    "table" : [],
+                    "image" : []
                 },
-                "image" : "",
             }
 
             match = re.match(r"(#{1,2} .+)\n([\s\S]*)", section.strip())
+
             if match:
                 title   = match.group(1).strip()
                 content = match.group(2).strip()
+
+                section_info["title"] = title
 
                 table_list = [table[0] for table in re.findall(r'(\|.*\|\n(\|.*\|\n)+)', content)]
 
@@ -245,12 +250,20 @@ class DatabaseController():
 
                 image_list = [image[0] for image in re.findall(r'(!\[(?P<image_title>[^\]]+)\]\((?P<image_path>[^\)"\s]+)\s*([^\)]*)\))', content)]
 
-                section_info["image"] = image_list
-                
                 for image in image_list:
+
+                    image_info = {
+                        "name" : "",
+                        "path" : ""
+                    }
+
+                    image_info["name"] = re.search(r"\(([^)]+)\)", image).group(1)
+                    image_info["path"] = f'output_MD/{PDF_name}_v{current_version+1}/{image_info["name"]}'
+
+                    section_info["content"]["image"].append(image_info)
+
                     content = content.replace(image, '')
 
-                section_info["title"] = title
                 section_info["content"]["text"]["raw_text"] = content
 
                 PDF_info["sections"].append(section_info)
@@ -265,116 +278,116 @@ class DatabaseController():
             ChatMessage(
                 role=MessageRole.SYSTEM,
                 content="""
-                將「內容」分解為清晰且簡單的命題，確保這些命題在脫離上下文的情況下也能被理解。
+                    將「內容」分解為清晰且簡單的命題，確保這些命題在脫離上下文的情況下也能被理解。
 
-                1. 將複合句分割成簡單句，儘可能保留輸入中的原始措辭。
+                    1. 將複合句分割成簡單句，儘可能保留輸入中的原始措辭。
 
-                2. 如果命名實體附帶描述性資訊，將這些資訊拆分為獨立的命題。
+                    2. 如果命名實體附帶描述性資訊，將這些資訊拆分為獨立的命題。
 
-                3. 通過添加必要的修飾詞，使命題去脈絡化。例如，將代名詞（例如 "它"、"他"、"她"、"他們"、"這個"、"那個"）替換為它們所指代的完整實體名稱。
+                    3. 通過添加必要的修飾詞，使命題去脈絡化。例如，將代名詞（例如 "它"、"他"、"她"、"他們"、"這個"、"那個"）替換為它們所指代的完整實體名稱。
 
-                4. 以 JSON 格式輸出結果，格式如下：: {"propositions": ["句子1", "句子2", "句子3"]}""" ),
+                    4. 以 JSON 格式輸出結果，格式如下：: {"propositions": ["句子1", "句子2", "句子3"]}"""),
             ChatMessage(
                 role=MessageRole.USER,
                 content="""
-                請使用繁體中文分解以下內容:
+                    請使用繁體中文分解以下內容:
 
-                Title: 晨間運動的好處 
+                    Title: 晨間運動的好處 
 
-                Content: 開始一天時進行運動，對身體與心理健康會產生深遠的影響。
+                    Content: 開始一天時進行運動，對身體與心理健康會產生深遠的影響。
 
-                晨間運動能提升精力、改善心情，並提高一天的專注力。
+                    晨間運動能提升精力、改善心情，並提高一天的專注力。
 
-                身體活動會刺激內啡肽的釋放，減輕壓力並帶來幸福感。
+                    身體活動會刺激內啡肽的釋放，減輕壓力並帶來幸福感。
 
-                此外，早晨運動有助於建立規律的生活習慣，使保持持續性變得更容易。
+                    此外，早晨運動有助於建立規律的生活習慣，使保持持續性變得更容易。
 
-                還能通過調節身體的自然時鐘來改善睡眠品質。
+                    還能通過調節身體的自然時鐘來改善睡眠品質。
 
-                無論是快走、瑜伽課，還是健身房運動，甚至只需要20到30分鐘，也能帶來顯著的效果。
+                    無論是快走、瑜伽課，還是健身房運動，甚至只需要20到30分鐘，也能帶來顯著的效果。
 
-                養成晨間運動的習慣，將體驗到更有成效且更健康的生活方式。
+                    養成晨間運動的習慣，將體驗到更有成效且更健康的生活方式。
 
-                這是一個小小的改變，卻能帶來顯著且持久的益處。"""),
+                    這是一個小小的改變，卻能帶來顯著且持久的益處。"""),
             ChatMessage(
                 role=MessageRole.ASSISTANT ,
                 content="""
-                propositions=[
-                    '晨間運動的好處',
-                    '開始一天時進行運動，能對你的身體與心理健康產生深遠的影響。',
-                    '參與晨間運動可以提升你的精力、改善心情，並提高一天的專注力。',
-                    '身體活動會刺激內啡肽的釋放，減輕壓力並促進幸福感。',
-                    '此外，早晨運動有助於建立規律的生活習慣，使保持持續性變得更容易。',
-                    '它還能通過調節身體的自然時鐘來改善睡眠品質。',
-                    '無論是快走、瑜伽課還是健身房運動，甚至只需20到30分鐘，也能帶來顯著的效果。',
-                    '養成晨間運動的習慣，將讓你體驗到更有成效且更健康的生活方式。',
-                    '這是一個小小的改變，卻能帶來顯著且持久的益處。']"""),
+                    propositions=[
+                        '晨間運動的好處',
+                        '開始一天時進行運動，能對你的身體與心理健康產生深遠的影響。',
+                        '參與晨間運動可以提升你的精力、改善心情，並提高一天的專注力。',
+                        '身體活動會刺激內啡肽的釋放，減輕壓力並促進幸福感。',
+                        '此外，早晨運動有助於建立規律的生活習慣，使保持持續性變得更容易。',
+                        '它還能通過調節身體的自然時鐘來改善睡眠品質。',
+                        '無論是快走、瑜伽課還是健身房運動，甚至只需20到30分鐘，也能帶來顯著的效果。',
+                        '養成晨間運動的習慣，將讓你體驗到更有成效且更健康的生活方式。',
+                        '這是一個小小的改變，卻能帶來顯著且持久的益處。']"""),
             ChatMessage(
                 role=MessageRole.USER,
                 content="""
-                請使用繁體中文分解以下內容:Title:{title} Content:{content}"""),
+                    請使用繁體中文分解以下內容:Title:{title} Content:{content}"""),
             ]
 
         table_decompose_prompt = [
             ChatMessage(
                 role=MessageRole.SYSTEM,
                 content="""
-                分析表格並基於表格內容撰寫摘要。
+                    分析表格並基於表格內容撰寫摘要。
 
-                1. 提供清晰且簡潔的描述，描述每一行中的關鍵資訊，避免冗長或不必要的細節。
+                    1. 提供清晰且簡潔的描述，描述每一行中的關鍵資訊，避免冗長或不必要的細節。
 
-                2. 摘要需突出主要數據點與重要特徵，針對數值型數據，強調極值（例如最大值或最小值）、趨勢或明顯的異常。
+                    2. 摘要需突出主要數據點與重要特徵，針對數值型數據，強調極值（例如最大值或最小值）、趨勢或明顯的異常。
 
-                3. 若為分類型數據，則重點說明具代表性或高頻的類別。
+                    3. 若為分類型數據，則重點說明具代表性或高頻的類別。
 
-                4. 若某些列的內容相似度極高，可合併處理並概括為一條命題。
+                    4. 若某些列的內容相似度極高，可合併處理並概括為一條命題。
 
-                5. 可在摘要的末尾加入簡短的總結，概述整體表格的核心意義或結論，例如「此表格展示了...的主要趨勢」。
+                    5. 可在摘要的末尾加入簡短的總結，概述整體表格的核心意義或結論，例如「此表格展示了...的主要趨勢」。
 
-                6. 以 JSON 格式輸出結果，格式如下：: {"propositions": ["句子1", "句子2", "句子3"]}""" ),
+                    6. 以 JSON 格式輸出結果，格式如下：: {"propositions": ["句子1", "句子2", "句子3"]}""" ),
             ChatMessage(
                 role=MessageRole.USER,
                 content="""
-                請使用繁體中文分析以下表格並基於表格內容撰寫摘要:
+                    請使用繁體中文分析以下表格並基於表格內容撰寫摘要:
 
-                Table:| CPU                          | Pentium 4 1.8 GHz         |
-                      |------------------------------|---------------------------|
-                      | OS                           | Redhat 7.3 (Linux 2.4.18) |
-                      | Main-memory size             | 1 GB RDRAM                |
-                      | Trace Cache                  | 12 K micro-ops            |
-                      | ITLB                         | 128 entries               |
-                      | L1 data cache size           | 16 KB                     |
-                      | L1 data cacheline size       | 64 bytes                  |
-                      | L2 cache size                | 256 KB                    |
-                      | L2 cacheline size            | 128 bytes                 |
-                      | Trace Cache miss latency     | > 27 cycles               |
-                      | L1 data miss latency         | 18 cycles                 |
-                      | L2 miss latency              | 276 cycles                |
-                      | Branch misprediction latency | > 20 cycles               |
-                      | Hardware prefetch            | Yes                       |
-                      | C Compiler                   | GNU's gcc 3.2             |"""),
+                    Table:| CPU                          | Pentium 4 1.8 GHz         |
+                          |------------------------------|---------------------------|
+                          | OS                           | Redhat 7.3 (Linux 2.4.18) |
+                          | Main-memory size             | 1 GB RDRAM                |
+                          | Trace Cache                  | 12 K micro-ops            |
+                          | ITLB                         | 128 entries               |
+                          | L1 data cache size           | 16 KB                     |
+                          | L1 data cacheline size       | 64 bytes                  |
+                          | L2 cache size                | 256 KB                    |
+                          | L2 cacheline size            | 128 bytes                 |
+                          | Trace Cache miss latency     | > 27 cycles               |
+                          | L1 data miss latency         | 18 cycles                 |
+                          | L2 miss latency              | 276 cycles                |
+                          | Branch misprediction latency | > 20 cycles               |
+                          | Hardware prefetch            | Yes                       |
+                          | C Compiler                   | GNU's gcc 3.2             |"""),
             ChatMessage(
                 role=MessageRole.ASSISTANT ,
                 content="""
-                propositions=[
-                    '此表格提供了一個計算系統的規格，詳細列出 CPU、記憶體、快取及效能特性：',
-                    'CPU：使用 Pentium 4 1.8 GHz 處理器。',
-                    '操作系統：運行於 Redhat 7.3，採用 Linux 核心版本 2.4.18。',
-                    '記憶體：配備 1 GB 的 RDRAM。',
-                    '指令追蹤快取（Trace Cache）：容量為 12K 微操作（micro-ops）。',
-                    '指令 TLB：包含 128 個條目。',
-                    'L1 資料快取：大小為 16 KB，快取線大小為 64 字節。',
-                    'L2 快取：大小為 256 KB，快取線大小為 128 字節。',
-                    '指令追蹤快取未命中：延遲超過 27 個週期。',
-                    'L1 資料快取未命中：延遲為 18 個週期。',
-                    'L2 快取未命中：延遲為 276 個週期。',
-                    '分支預測錯誤：懲罰超過 20 個週期。',
-                    '硬體預取（Hardware Prefetch）：已啟用。',
-                    '編譯器：使用 GNU 的 gcc 版本 3.2。']"""),
+                    propositions=[
+                        '此表格提供了一個計算系統的規格，詳細列出 CPU、記憶體、快取及效能特性：',
+                        'CPU：使用 Pentium 4 1.8 GHz 處理器。',
+                        '操作系統：運行於 Redhat 7.3，採用 Linux 核心版本 2.4.18。',
+                        '記憶體：配備 1 GB 的 RDRAM。',
+                        '指令追蹤快取（Trace Cache）：容量為 12K 微操作（micro-ops）。',
+                        '指令 TLB：包含 128 個條目。',
+                        'L1 資料快取：大小為 16 KB，快取線大小為 64 字節。',
+                        'L2 快取：大小為 256 KB，快取線大小為 128 字節。',
+                        '指令追蹤快取未命中：延遲超過 27 個週期。',
+                        'L1 資料快取未命中：延遲為 18 個週期。',
+                        'L2 快取未命中：延遲為 276 個週期。',
+                        '分支預測錯誤：懲罰超過 20 個週期。',
+                        '硬體預取（Hardware Prefetch）：已啟用。',
+                        '編譯器：使用 GNU 的 gcc 版本 3.2。']"""),
             ChatMessage(
                 role=MessageRole.USER,
                 content="""
-                請使用繁體中文分析以下表格並基於表格內容撰寫摘要:Table:{table}"""),
+                    請使用繁體中文分析以下表格並基於表格內容撰寫摘要:Table:{table}"""),
             ]
 
         text_decompose_template  = ChatPromptTemplate(message_templates=text_decompose_prompt)
@@ -419,16 +432,16 @@ class DatabaseController():
     def propositions_to_documents(self, pdf, propositions, documents, start_date, end_date, current_version):
 
         metadata = {
-                "raw_text"      : propositions["raw_text"],
-                "source"        : pdf.stream.name, 
-                "size"          : pdf.stream.size,
-                "chunk_size"    : self.chunk_size,
-                "chunk_overlap" : self.chunk_overlap,
-                "start_date"    : start_date,
-                "end_date"      : end_date,
-                "version"       : current_version + 1,
-                "latest"        : True
-                }
+            "raw_text"      : propositions["raw_text"],
+            "source"        : pdf.stream.name, 
+            "size"          : pdf.stream.size,
+            "chunk_size"    : self.chunk_size,
+            "chunk_overlap" : self.chunk_overlap,
+            "start_date"    : start_date,
+            "end_date"      : end_date,
+            "version"       : current_version + 1,
+            "latest"        : True
+        }
 
         if isinstance(propositions["propositions"], list):
 
@@ -464,11 +477,11 @@ class DatabaseController():
 
 #-----------------------------------------------------------------------------#
 
-    def save_json(self, PDF_info, current_version):
+    def save_json(self, PDF_name, PDF_info, current_version):
 
         path = "output_json/"
 
-        save_json_name = PDF_info["PDF_name"] + '_v' + str(current_version+1) + '.json'
+        save_json_name = PDF_name + '_v' + str(current_version+1) + '.json'
 
         with open(path+save_json_name, 'w', encoding='utf-8') as file:
             file.write(json.dumps(PDF_info, indent=4, ensure_ascii=False))
@@ -488,15 +501,13 @@ class DatabaseController():
 
 #-----------------------------------------------------------------------------#
 
-    def load_markdown(self, pdf):
+    def load_markdown(self, PDF_name, current_version):
 
         path = "output_MD/"
 
-        current_version = self.get_version_list(pdf.stream.name)[0]+1
+        markdown_folder = PDF_name + '_v' + str(current_version+1) + '/'
 
-        markdown_folder = pdf.stream.name.split('.')[0] + '_v' + str(current_version) + '/'
-
-        markdown_name = pdf.stream.name.split('.')[0] + '_v' + str(current_version) + '.md'
+        markdown_name = PDF_name + '_v' + str(current_version+1) + '.md'
         
         with open(path+markdown_folder+markdown_name, 'r', encoding="utf-8") as file:
             markdown = file.read()

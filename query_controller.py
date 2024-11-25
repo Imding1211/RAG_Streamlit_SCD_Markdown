@@ -43,6 +43,7 @@ class QueryController():
     def generate_prompt(self, query_text, query_results):
         
         context_text    = "\n\n---\n\n".join(list(set([doc.metadata['raw_text'] for doc in query_results])))
+        #context_text    = "\n\n---\n\n".join(list(set([doc.page_content for doc in query_results])))
         prompt_template = ChatPromptTemplate.from_template(self.prompt_templt)
         prompt          = prompt_template.format(context=context_text, question=query_text)
 
