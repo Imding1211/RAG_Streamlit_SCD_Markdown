@@ -109,15 +109,15 @@ class DatabaseController():
 
         print(PDF_name)
 
-        markdown = self.load_markdown(PDF_name, current_version)
+        #markdown = self.load_markdown(PDF_name, current_version)
 
-        PDF_info = self.markdown_to_section(PDF_name, markdown, current_version)
+        #PDF_info = self.markdown_to_section(PDF_name, markdown, current_version)
 
-        PDF_info = self.create_propositions(PDF_info)
+        #PDF_info = self.create_propositions(PDF_info)
 
-        self.save_json(PDF_name, PDF_info, current_version)
+        #self.save_json(PDF_name, PDF_info, current_version)
 
-        #PDF_info = self.load_json(PDF_name, current_version)
+        PDF_info = self.load_json(PDF_name, current_version)
         
         documents = []
         for info in PDF_info["sections"]:
@@ -160,6 +160,7 @@ class DatabaseController():
                 }
 
                 new_documents.append(Document(page_content=old_document, metadata=updated_metedata))
+
                 new_ids.append(ids)
 
         self.database.update_documents(ids=new_ids, documents=new_documents)
@@ -199,7 +200,6 @@ class DatabaseController():
             version_list = self.get_version_list(rollback_source)
 
             if rollback_version == version_list[0] and len(version_list) > 1:
-
                 self.update_chroma(rollback_source, end_date, True, version_list[1])
 
 #-----------------------------------------------------------------------------#
@@ -230,6 +230,7 @@ class DatabaseController():
             match = re.match(r"(#{1,2} .+)\n([\s\S]*)", section.strip())
 
             if match:
+
                 title   = match.group(1).strip()
                 content = match.group(2).strip()
 
@@ -402,6 +403,7 @@ class DatabaseController():
 
             try:
                 text_response_json = json.loads(text_response.message.content)
+
                 for index, proposition in enumerate(text_response_json["propositions"], 1):
                     info['content']['text']['propositions'].append(proposition)
                     print(proposition)
@@ -418,6 +420,7 @@ class DatabaseController():
 
                     try:
                         table_response_json = json.loads(table_response.message.content)
+
                         for index, proposition in enumerate(table_response_json["propositions"], 1):
                             table_info['propositions'].append(proposition)
                             print(proposition)
@@ -435,8 +438,8 @@ class DatabaseController():
             "raw_text"      : propositions["raw_text"],
             "source"        : pdf.stream.name, 
             "size"          : pdf.stream.size,
-            "chunk_size"    : self.chunk_size,
-            "chunk_overlap" : self.chunk_overlap,
+            "chunk_size"    : "",
+            "chunk_overlap" : "",
             "start_date"    : start_date,
             "end_date"      : end_date,
             "version"       : current_version + 1,
@@ -452,6 +455,10 @@ class DatabaseController():
                 documents.append(document)
 
         else:
+
+            metadata["chunk_size"]    = self.chunk_size
+            metadata["chunk_overlap"] = self.chunk_overlap
+
             documents = self.text_splitter.create_documents([str(propositions["propositions"])], [metadata])
 
         return documents
