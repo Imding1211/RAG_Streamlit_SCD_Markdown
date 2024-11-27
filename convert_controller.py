@@ -1,25 +1,47 @@
+
+from marker.output import markdown_exists, save_markdown
+from marker.pdf.extract_text import get_length_of_text
+from marker.convert import convert_single_pdf
+from marker.logger import configure_logging
+from marker.pdf.utils import find_filetype
+from marker.models import load_all_models
+from marker.settings import settings
+from tqdm import tqdm
+
+import torch.multiprocessing as mp
+import pypdfium2 # Needs to be at the top to avoid warnings
+import traceback
+import math
+import json
 import os
+
 
 os.environ["PYTORCH_ENABLE_MPS_FALLBACK"] = "1" # For some reason, transformers decided to use .isin for a simple op, which is not supported on MPS
 os.environ["IN_STREAMLIT"] = "true" # Avoid multiprocessing inside surya
 os.environ["PDFTEXT_CPU_WORKERS"] = "1" # Avoid multiprocessing inside pdftext
 
-import pypdfium2 # Needs to be at the top to avoid warnings
-import torch.multiprocessing as mp
-from tqdm import tqdm
-import math
-
-from marker.convert import convert_single_pdf
-from marker.output import markdown_exists, save_markdown
-from marker.pdf.utils import find_filetype
-from marker.pdf.extract_text import get_length_of_text
-from marker.models import load_all_models
-from marker.settings import settings
-from marker.logger import configure_logging
-import traceback
-import json
 
 configure_logging()
+
+
+def remove_all_files_in_folder(folder_path):
+    # 檢查資料夾是否存在
+    if not os.path.exists(folder_path):
+        print(f"資料夾 {folder_path} 不存在。")
+        return
+    
+    # 列出資料夾內的所有檔案
+    for filename in os.listdir(folder_path):
+        file_path = os.path.join(folder_path, filename)
+        try:
+            # 檢查是否為檔案
+            if os.path.isfile(file_path):
+                os.remove(file_path)  # 刪除檔案
+                print(f"已刪除檔案: {file_path}")
+            elif os.path.isdir(file_path):
+                print(f"{file_path} 是資料夾，跳過。")
+        except Exception as e:
+            print(f"無法刪除檔案 {file_path}，錯誤: {e}")
 
 
 def worker_init(shared_model):
@@ -122,5 +144,7 @@ def PDF_to_MD(in_folder, out_folder, chunk_idx=0, num_chunks=1, max_num=None, wo
 
 
 if __name__ == "__main__":
+
     PDF_to_MD("save_PDF", "output_MD/", chunk_idx=0, num_chunks=1, max_num=None, workers=5, metadata_file=None, min_length=None)
     
+    remove_all_files_in_folder("temp_PDF")

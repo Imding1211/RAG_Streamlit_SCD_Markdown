@@ -1,10 +1,12 @@
+
 from database_controller import DatabaseController
 from setting_controller import SettingController
+
 from ollama import Client
+
 import streamlit as st
 import pandas as pd
 import humanize
-import ollama
 
 #=============================================================================#
 

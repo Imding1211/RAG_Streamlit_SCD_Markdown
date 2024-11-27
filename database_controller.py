@@ -132,6 +132,7 @@ class DatabaseController():
             metadata = {
                 "title"         : info["title"],
                 "raw_text"      : info["raw_text"],
+                "image_text"    : info["image_text"],
                 "source"        : pdf.stream.name, 
                 "size"          : pdf.stream.size,
                 "chunk_size"    : "",
@@ -162,6 +163,8 @@ class DatabaseController():
         if len(documents):
             self.database.add_documents(documents, ids=ids)
 
+        print("Done!!")
+
 #-----------------------------------------------------------------------------#
 
     def update_chroma(self, source_name, date, latest, current_version):
@@ -176,8 +179,9 @@ class DatabaseController():
             if old_metadata['version'] == current_version:
 
                 updated_metedata = {
-                    "title"         : info["title"],
-                    "raw_text"      : info["raw_text"],
+                    "title"         : old_metadata["title"],
+                    "raw_text"      : old_metadata["raw_text"],
+                    "image_text"    : old_metadata["image_text"],
                     "source"        : old_metadata['source'], 
                     "size"          : old_metadata['size'],
                     "chunk_size"    : old_metadata['chunk_size'],
@@ -251,6 +255,7 @@ class DatabaseController():
                 "title"        : f"段落標題:{index+1}",
                 "raw_text"     : table,
                 "propositions" : [],
+                "image_text"   : "",
                 "image"        : []
             }
 
@@ -462,6 +467,7 @@ class DatabaseController():
         for file in files:
 
             save_path = "save_PDF/"
+            temp_path = "temp_PDF/"
 
             current_version = self.get_version_list(PyPDF2.PdfReader(file).stream.name)[0]+1
 
@@ -473,6 +479,7 @@ class DatabaseController():
                 temp_pdf_name = temp_pdf.name
 
             shutil.move(temp_pdf_name, save_path+save_pdf_name)
+            shutil.copy(save_path+save_pdf_name, temp_path)
 
 #-----------------------------------------------------------------------------#
 

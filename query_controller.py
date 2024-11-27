@@ -1,8 +1,10 @@
 
 from langchain_core.prompts import ChatPromptTemplate
+from langchain_ollama import OllamaLLM
+
 from database_controller import DatabaseController
 from setting_controller import SettingController
-from langchain_ollama import OllamaLLM
+
 from typing import Dict, Generator
 
 #=============================================================================#
@@ -49,7 +51,16 @@ class QueryController():
 
         print(prompt)
 
-        return prompt
+        raw = []
+        for doc in query_results:
+            if len(doc.metadata['image_text']):
+                raw.append(doc.metadata['image_text'])
+            else:
+                raw.append(doc.metadata['raw_text'])
+
+        raw_text = "\n\n---\n\n".join(list(set([text for text in raw])))
+
+        return prompt, raw_text
 
 #-----------------------------------------------------------------------------#
 

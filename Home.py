@@ -2,6 +2,7 @@
 from database_controller import DatabaseController
 from setting_controller import SettingController
 from query_controller import QueryController
+
 import streamlit as st
 import uuid
 
@@ -47,24 +48,29 @@ if "messages" not in st.session_state or "memory" not in st.session_state:
 
 st.title("資料查詢")
 
+col1, col2 = st.columns(2)
+
+chat_container = col1.container(border=False, height=500)
+text_container = col2.container(border=False, height=500)
+
 #-----------------------------------------------------------------------------#
 
 for message in st.session_state.messages[1:]:
 
     if message["role"] == "user":
-        with st.chat_message("user", avatar="🦖"):
+        with chat_container.chat_message("user", avatar="🦖"):
             st.markdown(message["content"])
 
     else:
-        with st.chat_message("assistant", avatar="🤖"):
+        with chat_container.chat_message("assistant", avatar="🤖"):
             st.markdown(message["content"])
 
             if len(message["source"]):
-                st.caption("參考資料來源: " + ", ".join(message["source"]))
+                st.caption("資料來源: " + ", ".join(message["source"]))
 
                 st.divider()
 
-                st.caption("參考資料下載:")
+                st.caption("資料下載:")
                 download_buttons = []
                 for index, source in enumerate(message["source"]):
                     download_buttons.append(st.download_button(key=uuid.uuid4(), label=source, data=load_PDF(source), file_name=source, mime='application/octet-stream'))
@@ -73,21 +79,21 @@ for message in st.session_state.messages[1:]:
 
 if question := st.chat_input("輸入問題"):
 
-    with st.chat_message("user", avatar="🦖"):
+    with chat_container.chat_message("user", avatar="🦖"):
         st.markdown(question)
 
 #-----------------------------------------------------------------------------#
 
     results, sources = QueryController.generate_results(question)
 
-    prompt = QueryController.generate_prompt(question, results)
+    prompt, raw_text = QueryController.generate_prompt(question, results)
 
     st.session_state.messages.append({"role": "user", "content": question, "source": []})
     st.session_state.memory.append({"role": "user", "content": prompt, "source": []})
 
 #-----------------------------------------------------------------------------#
 
-    with st.chat_message("assistant", avatar="🤖"):
+    with chat_container.chat_message("assistant", avatar="🤖"):
         response = st.write_stream(QueryController.generate_response(st.session_state.memory))
 
         if len(sources):
@@ -104,3 +110,6 @@ if question := st.chat_input("輸入問題"):
 
     st.session_state.messages.append({"role": "assistant", "content": response, "source": sources})
     st.session_state.memory.append({"role": "assistant", "content": response, "source": sources})
+
+    text_container.markdown(raw_text, unsafe_allow_html=True)
+
