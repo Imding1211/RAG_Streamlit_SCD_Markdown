@@ -11,12 +11,15 @@ from llama_index.llms.ollama import Ollama
 
 from setting_controller import SettingController
 
+from pathlib import Path
+
 import pandas as pd
 import tempfile
 import datetime
 import humanize
 import PyPDF2
 import shutil
+import base64
 import uuid
 import json
 import re
@@ -88,6 +91,8 @@ class DatabaseController():
 
         df = pd.DataFrame({
             'ids'           : data['ids'],
+            'title'         : [meta['title'] for meta in data['metadatas']],
+            'raw_text'      : [meta['raw_text'] for meta in data['metadatas']],
             'source'        : [meta['source'] for meta in data['metadatas']],
             'size'          : [humanize.naturalsize(meta['size'], binary=True) for meta in data['metadatas']],
             'chunk_size'    : [meta['chunk_size'] for meta in data['metadatas']],
@@ -109,28 +114,50 @@ class DatabaseController():
 
         print(PDF_name)
 
-        #markdown = self.load_markdown(PDF_name, current_version)
+        meta = self.load_meta(PDF_name, current_version)
 
-        #PDF_info = self.markdown_to_section(PDF_name, markdown, current_version)
+        markdown = self.load_markdown(PDF_name, current_version)
 
-        #PDF_info = self.create_propositions(PDF_info)
+        PDF_info = self.markdown_to_section(PDF_name, markdown, meta, current_version)
 
-        #self.save_json(PDF_name, PDF_info, current_version)
+        PDF_info = self.create_propositions(PDF_info)
 
-        PDF_info = self.load_json(PDF_name, current_version)
-        
+        self.save_json(PDF_name, PDF_info, current_version)
+
+        #PDF_info = self.load_json(PDF_name, current_version)
+
         documents = []
         for info in PDF_info["sections"]:
 
-            documents = self.propositions_to_documents(pdf, info["content"]["text"], documents, start_date, end_date, current_version)
-            
-            if len(info["content"]["table"]):
+            metadata = {
+                "title"         : info["title"],
+                "raw_text"      : info["raw_text"],
+                "source"        : pdf.stream.name, 
+                "size"          : pdf.stream.size,
+                "chunk_size"    : "",
+                "chunk_overlap" : "",
+                "start_date"    : start_date,
+                "end_date"      : end_date,
+                "version"       : current_version + 1,
+                "latest"        : True
+            }
 
-                for table in info["content"]["table"]:
+            if isinstance(info["propositions"], list):
 
-                    documents = self.propositions_to_documents(pdf, table, documents, start_date, end_date, current_version)
+                info["propositions"] = [proposition for proposition in info["propositions"] if proposition.strip()]
 
-        ids = [str(uuid.uuid4()) for _ in range(len(documents))]
+                for proposition in info["propositions"]:
+                    document = Document(page_content=str(proposition), metadata=metadata)
+                    documents.append(document)
+
+            else:
+
+                metadata["chunk_size"]    = self.chunk_size
+                metadata["chunk_overlap"] = self.chunk_overlap
+
+                documents = self.text_splitter.create_documents([str(info["propositions"])], [metadata])
+
+            ids = [str(uuid.uuid4()) for _ in range(len(documents))]
 
         if len(documents):
             self.database.add_documents(documents, ids=ids)
@@ -149,6 +176,8 @@ class DatabaseController():
             if old_metadata['version'] == current_version:
 
                 updated_metedata = {
+                    "title"         : info["title"],
+                    "raw_text"      : info["raw_text"],
                     "source"        : old_metadata['source'], 
                     "size"          : old_metadata['size'],
                     "chunk_size"    : old_metadata['chunk_size'],
@@ -204,70 +233,82 @@ class DatabaseController():
 
 #-----------------------------------------------------------------------------#
 
-    def markdown_to_section(self, PDF_name, markdown, current_version):
+    def markdown_to_section(self, PDF_name, markdown, meta, current_version):
 
         PDF_info = {
             "PDF_name" : PDF_name,
             "sections" :[]
         }
 
-        section_list = re.split(r"(?=\n#{1,2} )", markdown)
+        section_id = 1
 
-        for section in section_list:
+        table_list = [table[0] for table in re.findall(r'(\|.*\|\n(\|.*\|\n)+)', markdown)]
+
+        for index, table in enumerate(table_list):
 
             section_info = {
-                "title" : "",
-                "content" : {
-                    "text" : {
-                        "raw_text" : "",
-                        "propositions" : []
-                    },
-                    "table" : [],
-                    "image" : []
-                },
+                "ID"           : section_id,
+                "title"        : f"段落標題:{index+1}",
+                "raw_text"     : table,
+                "propositions" : [],
+                "image"        : []
             }
 
-            match = re.match(r"(#{1,2} .+)\n([\s\S]*)", section.strip())
+            markdown = markdown.replace(table, '')
 
-            if match:
+            PDF_info["sections"].append(section_info)
+            section_id += 1
 
-                title   = match.group(1).strip()
-                content = match.group(2).strip()
+        pattern = "|".join(re.escape(header["title"]) for header in meta["computed_toc"])
 
-                section_info["title"] = title
+        content_list = re.split(f"({pattern})", markdown)
 
-                table_list = [table[0] for table in re.findall(r'(\|.*\|\n(\|.*\|\n)+)', content)]
+        for index in range(1, len(content_list), 2):
 
-                for table in table_list:
+            title    = content_list[index].strip()
+            raw_text = content_list[index + 1].strip()
 
-                    table_info = {
-                        "raw_text" : table,
-                        "propositions" : []
-                    }
+            section_info = {
+                "ID"           : section_id,
+                "title"        : title,
+                "raw_text"     : raw_text,
+                "propositions" : [f"段落標題:{content_list[index].strip()}"],
+                "image_text"   : raw_text,
+                "image"        : []
+            }
 
-                    section_info["content"]["table"].append(table_info)
+            image_list = [image for image in re.findall(r'(!\[(?P<image_title>[^\]]+)\]\((?P<image_path>[^\)"\s]+)\s*([^\)]*)\))', raw_text)]
 
-                    content = content.replace(table, '')
-
-                image_list = [image[0] for image in re.findall(r'(!\[(?P<image_title>[^\]]+)\]\((?P<image_path>[^\)"\s]+)\s*([^\)]*)\))', content)]
+            if len(image_list):
 
                 for image in image_list:
 
+                    image_md   = image[0]
+                    image_name = image[1]
+                    image_path = f'output_MD/{PDF_name}_v{current_version+1}/{image_name}'
+                    
                     image_info = {
                         "name" : "",
                         "path" : ""
                     }
 
-                    image_info["name"] = re.search(r"\(([^)]+)\)", image).group(1)
-                    image_info["path"] = f'output_MD/{PDF_name}_v{current_version+1}/{image_info["name"]}'
+                    image_info["name"] = image_name
+                    image_info["path"] = image_path
 
-                    section_info["content"]["image"].append(image_info)
+                    section_info["image"].append(image_info)
 
-                    content = content.replace(image, '')
+                    img_bytes = Path(image_path).read_bytes()
+                    encoded   = base64.b64encode(img_bytes).decode()
+                    img_html  = f'<img src="data:image/png;base64,{encoded}" alt="{image_name}" style="max-width: 100%;">'
 
-                section_info["content"]["text"]["raw_text"] = content
+                    section_info["raw_text"]   = section_info["raw_text"].replace(image_md, "")
+                    section_info["image_text"] = section_info["image_text"].replace(image_md, img_html)
 
-                PDF_info["sections"].append(section_info)
+            else:
+                section_info["image_text"] = ""
+
+            PDF_info["sections"].append(section_info)
+            section_id += 1
 
         return PDF_info
 
@@ -395,9 +436,9 @@ class DatabaseController():
 
         table_decompose_template = ChatPromptTemplate(message_templates=table_decompose_prompt)
 
-        for info in PDF_info['sections']:
+        for info in PDF_info["sections"]:
             
-            text_messages = text_decompose_template.format_messages(title=info['title'], content=info['content']['text']['raw_text'])
+            text_messages = text_decompose_template.format_messages(title=info["title"], content=info["raw_text"])
             
             text_response = self.llm.chat(text_messages)
 
@@ -405,63 +446,14 @@ class DatabaseController():
                 text_response_json = json.loads(text_response.message.content)
 
                 for index, proposition in enumerate(text_response_json["propositions"], 1):
-                    info['content']['text']['propositions'].append(proposition)
+                    info["propositions"].append(proposition)
                     print(proposition)
 
             except:
-                info['content']['text']['propositions'] = text_response.message.content
-            
-            if len(info['content']['table']):
-                for table_info in info['content']['table']:
-                
-                    table_messages = table_decompose_template.format_messages(table=table_info['raw_text'])
-
-                    table_response = self.llm.chat(table_messages)
-
-                    try:
-                        table_response_json = json.loads(table_response.message.content)
-
-                        for index, proposition in enumerate(table_response_json["propositions"], 1):
-                            table_info['propositions'].append(proposition)
-                            print(proposition)
-
-                    except:
-                        table_info['propositions'] = table_response.message.content
+                info["propositions"] = text_response.message.content
+                print(text_response.message.content)
 
         return PDF_info
-
-#-----------------------------------------------------------------------------#
-
-    def propositions_to_documents(self, pdf, propositions, documents, start_date, end_date, current_version):
-
-        metadata = {
-            "raw_text"      : propositions["raw_text"],
-            "source"        : pdf.stream.name, 
-            "size"          : pdf.stream.size,
-            "chunk_size"    : "",
-            "chunk_overlap" : "",
-            "start_date"    : start_date,
-            "end_date"      : end_date,
-            "version"       : current_version + 1,
-            "latest"        : True
-        }
-
-        if isinstance(propositions["propositions"], list):
-
-            propositions["propositions"] = [proposition for proposition in propositions["propositions"] if proposition.strip()]
-
-            for proposition in propositions["propositions"]:
-                document = Document(page_content=str(proposition), metadata=metadata)
-                documents.append(document)
-
-        else:
-
-            metadata["chunk_size"]    = self.chunk_size
-            metadata["chunk_overlap"] = self.chunk_overlap
-
-            documents = self.text_splitter.create_documents([str(propositions["propositions"])], [metadata])
-
-        return documents
 
 #-----------------------------------------------------------------------------#
 
@@ -505,6 +497,21 @@ class DatabaseController():
             PDF_info = json.load(file)
 
         return PDF_info
+
+#-----------------------------------------------------------------------------#
+
+    def load_meta(self, PDF_name, current_version):
+
+        path = "output_MD/"
+
+        meta_folder = PDF_name + '_v' + str(current_version+1) + '/'
+
+        meta_name = PDF_name + '_v' + str(current_version+1) + '_meta.json'
+        
+        with open(path+meta_folder+meta_name, 'r', encoding="utf-8") as file:
+            meta = json.load(file)
+        
+        return meta
 
 #-----------------------------------------------------------------------------#
 
