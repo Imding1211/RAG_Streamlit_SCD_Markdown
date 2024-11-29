@@ -126,7 +126,6 @@ class DatabaseController():
 
         #PDF_info = self.load_json(PDF_name, current_version)
 
-        documents = []
         for info in PDF_info["sections"]:
 
             metadata = {
@@ -143,25 +142,12 @@ class DatabaseController():
                 "latest"        : True
             }
 
-            if isinstance(info["propositions"], list):
-
-                info["propositions"] = [proposition for proposition in info["propositions"] if proposition.strip()]
-
-                for proposition in info["propositions"]:
-                    document = Document(page_content=str(proposition), metadata=metadata)
-                    documents.append(document)
-
-            else:
-
-                metadata["chunk_size"]    = self.chunk_size
-                metadata["chunk_overlap"] = self.chunk_overlap
-
-                documents = self.text_splitter.create_documents([str(info["propositions"])], [metadata])
+            documents = self.section_to_documents(info, metadata)
 
             ids = [str(uuid.uuid4()) for _ in range(len(documents))]
 
-        if len(documents):
-            self.database.add_documents(documents, ids=ids)
+            if len(documents):
+                self.database.add_documents(documents, ids=ids)
 
         print("Done!!")
 
@@ -252,7 +238,8 @@ class DatabaseController():
 
             section_info = {
                 "ID"           : section_id,
-                "title"        : f"段落標題:{index+1}",
+                "type"         : "Table",
+                "title"        : f"Table:{index+1}",
                 "raw_text"     : table,
                 "propositions" : [],
                 "image_text"   : "",
@@ -275,6 +262,7 @@ class DatabaseController():
 
             section_info = {
                 "ID"           : section_id,
+                "type"         : "Text",
                 "title"        : title,
                 "raw_text"     : raw_text,
                 "propositions" : [f"段落標題:{content_list[index].strip()}"],
@@ -442,23 +430,54 @@ class DatabaseController():
         table_decompose_template = ChatPromptTemplate(message_templates=table_decompose_prompt)
 
         for info in PDF_info["sections"]:
+
+            if info["type"] == "Table":
+                messages = table_decompose_template.format_messages(table=info["raw_text"])
+
+            elif info["type"] == "Text":
+                messages = text_decompose_template.format_messages(title=info["title"], content=info["raw_text"])
             
-            text_messages = text_decompose_template.format_messages(title=info["title"], content=info["raw_text"])
-            
-            text_response = self.llm.chat(text_messages)
+            response = self.llm.chat(messages)
 
             try:
-                text_response_json = json.loads(text_response.message.content)
+                text_response_json = json.loads(response.message.content)
 
                 for index, proposition in enumerate(text_response_json["propositions"], 1):
-                    info["propositions"].append(proposition)
-                    print(proposition)
+                    proposition = re.sub(r"\s+", "", proposition)
+                    if len(proposition):
+                        info["propositions"].append(proposition)
+                        print(proposition)
+
+                print("Formatted output successful.")
 
             except:
-                info["propositions"] = text_response.message.content
-                print(text_response.message.content)
+                info["propositions"] = response.message.content
+
+                print("Formatted output failed.")
 
         return PDF_info
+
+#-----------------------------------------------------------------------------#
+
+    def section_to_documents(self, info, metadata):
+
+        if isinstance(info["propositions"], list):
+
+            info["propositions"] = [proposition for proposition in info["propositions"] if proposition.strip()]
+
+            documents = []
+            for proposition in info["propositions"]:
+                document = Document(page_content=str(proposition), metadata=metadata)
+                documents.append(document)
+
+        else:
+
+            metadata["chunk_size"]    = self.chunk_size
+            metadata["chunk_overlap"] = self.chunk_overlap
+
+            documents = self.text_splitter.create_documents([str(info["propositions"])], [metadata])
+
+        return documents
 
 #-----------------------------------------------------------------------------#
 

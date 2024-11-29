@@ -24,7 +24,7 @@ os.environ["PDFTEXT_CPU_WORKERS"] = "1" # Avoid multiprocessing inside pdftext
 configure_logging()
 
 
-def remove_all_files_in_folder(folder_path):
+def remove_temp_PDF(folder_path):
     # 檢查資料夾是否存在
     if not os.path.exists(folder_path):
         print(f"資料夾 {folder_path} 不存在。")
@@ -34,12 +34,10 @@ def remove_all_files_in_folder(folder_path):
     for filename in os.listdir(folder_path):
         file_path = os.path.join(folder_path, filename)
         try:
-            # 檢查是否為檔案
-            if os.path.isfile(file_path):
+            # 檢查是否為 .pdf 檔案
+            if os.path.isfile(file_path) and filename.lower().endswith('.pdf'):
                 os.remove(file_path)  # 刪除檔案
                 print(f"已刪除檔案: {file_path}")
-            elif os.path.isdir(file_path):
-                print(f"{file_path} 是資料夾，跳過。")
         except Exception as e:
             print(f"無法刪除檔案 {file_path}，錯誤: {e}")
 
@@ -147,4 +145,4 @@ if __name__ == "__main__":
 
     PDF_to_MD("save_PDF", "output_MD/", chunk_idx=0, num_chunks=1, max_num=None, workers=5, metadata_file=None, min_length=None)
     
-    remove_all_files_in_folder("temp_PDF")
+    remove_temp_PDF("temp_PDF")

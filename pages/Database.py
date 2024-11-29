@@ -138,7 +138,7 @@ if col2.button("更新"):
 
         DatabaseController.save_PDF(files)
 
-        subprocess.run([f"{sys.executable}", "convert_controller.py"])
+        #subprocess.run([f"{sys.executable}", "convert_controller.py"])
 
         DatabaseController.add_database(files)
 
