@@ -10,14 +10,8 @@ import humanize
 
 #=============================================================================#
 
-SettingController        = SettingController()
-selected_llm             = SettingController.setting['llm_model']['selected']
-llm_models               = SettingController.setting['llm_model']['options']
-selected_llm_index       = llm_models.index(selected_llm)
-selected_embedding       = SettingController.setting['embedding_model']['selected']
-embedding_models         = SettingController.setting['embedding_model']['options']
-selected_embedding_index = embedding_models.index(selected_embedding)
-client                   = Client(host=SettingController.setting['server']['base_url'])
+SettingController = SettingController()
+client            = Client(host=SettingController.setting['server']['base_url'])
 
 DatabaseController       = DatabaseController()
 embedding_model_disabled = True if len(DatabaseController.calculate_existing_ids()) != 0 else False
@@ -26,47 +20,15 @@ embedding_model_disabled = True if len(DatabaseController.calculate_existing_ids
 
 def change_llm_model():
     SettingController.change_llm_model(st.session_state.llm_model)
+    if '請重新選擇' in list_llm_model:
+        list_llm_model.remove('請重新選擇')
 
 #-----------------------------------------------------------------------------#
 
 def change_embedding_model():
     SettingController.change_embedding_model(st.session_state.embedding_model)
-
-#-----------------------------------------------------------------------------#
-
-@st.dialog("新增語言模型")
-def add_llm_model():
-    llm_model = st.text_input("輸入模型名稱")
-    if st.button("新增"):
-        SettingController.add_llm_model(llm_model)
-        st.rerun()
-
-#-----------------------------------------------------------------------------#
-
-@st.dialog("新增嵌入模型")
-def add_embedding_model():
-    llm_model = st.text_input("輸入模型名稱")
-    if st.button("新增"):
-        SettingController.add_embedding_model(llm_model)
-        st.rerun()
-
-#-----------------------------------------------------------------------------#
-
-@st.dialog("移除語言模型")
-def remove_llm_model():
-    llm_model = st.selectbox("選擇模型", llm_models)
-    if st.button("移除"):
-        SettingController.remove_llm_model(llm_model)
-        st.rerun()
-
-#-----------------------------------------------------------------------------#
-
-@st.dialog("移除嵌入模型")
-def remove_embedding_model():
-    llm_model = st.selectbox("選擇模型", embedding_models)
-    if st.button("移除"):
-        SettingController.remove_embedding_model(llm_model)
-        st.rerun()
+    if '請重新選擇' in list_embedding_model:
+        list_embedding_model.remove('請重新選擇')
 
 #-----------------------------------------------------------------------------#
 
@@ -86,6 +48,14 @@ def ollama_to_dataframe(client):
         })
 
     return df_info
+
+#=============================================================================#
+
+df_info              = ollama_to_dataframe(client)
+list_llm_model       = df_info[df_info["family"] != "bert"]["name"].tolist()
+list_embedding_model = df_info[df_info["family"] == "bert"]["name"].tolist()
+selected_llm         = SettingController.setting['llm_model']['selected']
+selected_embedding   = SettingController.setting['embedding_model']['selected']
 
 #=============================================================================#
 
@@ -142,30 +112,41 @@ info_config = {
     ),
 }
 
-if "selected_LLM_model" not in st.session_state:
-    st.session_state.selected_LLM_model = ""
-
-if "selected_embedding_model" not in st.session_state:
-    st.session_state.selected_embedding_model = ""
-
 #=============================================================================#
 
 st.title("模型")
 
 #-----------------------------------------------------------------------------#
 
+llm_warning       = st.empty()
+embedding_warning = st.empty()
+
+if selected_llm in list_llm_model:
+    index_llm = list_llm_model.index(selected_llm)
+else:
+    llm_warning.error(f'{selected_llm}語言模型不存在，請重新選擇。', icon="🚨")
+    list_llm_model.insert(0, '請重新選擇')
+    index_llm = 0
+
+if selected_embedding in list_embedding_model:
+    index_embedding = list_embedding_model.index(selected_embedding)
+else:
+    embedding_warning.error(f'{selected_embedding}嵌入模型不存在，請重新選擇。', icon="🚨")
+    list_embedding_model.insert(0, '請重新選擇')
+    index_embedding = 0
+
 st.selectbox("請選擇語言模型", 
-    llm_models, 
+    list_llm_model, 
     on_change=change_llm_model, 
     key='llm_model', 
-    index=selected_llm_index
+    index=index_llm
     )
 
 st.selectbox("請選擇嵌入模型", 
-    embedding_models, 
+    list_embedding_model, 
     on_change=change_embedding_model, 
     key='embedding_model', 
-    index=selected_embedding_index,
+    index=index_embedding,
     disabled=embedding_model_disabled
     )
 
@@ -178,27 +159,22 @@ if embedding_model_disabled:
 
 st.divider()
 
-st.header("Ollama 列表")
+st.header("Ollama 模型列表")
 
-col1, col2 = st.columns([8.5, 1.5])
+st.subheader("語言模型列表")
 
-df_info = ollama_to_dataframe(client)
-
-col1.dataframe(
-    df_info,
+st.dataframe(
+    df_info[df_info["family"] != "bert"],
     column_config=info_config,
     use_container_width=True,
     hide_index=True
     )
 
-if col2.button("新增語言模型"):
-    add_llm_model()
+st.subheader("嵌入模型列表")
 
-if col2.button("移除語言模型"):
-    remove_llm_model()
-
-if col2.button("新增嵌入模型"):
-    add_embedding_model()
-
-if col2.button("移除嵌入模型"):
-    remove_embedding_model()
+st.dataframe(
+    df_info[df_info["family"] == "bert"],
+    column_config=info_config,
+    use_container_width=True,
+    hide_index=True
+    )
