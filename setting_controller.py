@@ -1,4 +1,5 @@
 
+import datetime
 import json
 
 #=============================================================================#
@@ -7,11 +8,24 @@ class SettingController():
 
 	def __init__(self):
 
+		self.time_zone  = datetime.timezone(datetime.timedelta(hours=8))
+		self.time_now   = datetime.datetime.now(tz=self.time_zone)
+		self.start_date = self.time_now.strftime('%Y/%m/%d %H:%M:%S')
+
 		self.default_setting = {
 		    "paramater": {
 		        "prompt": "{context}\n\n---\n\n根據以上資料用繁體中文回答問題: {question}\n",
 		        "query_num": 5,
 		        "database": "database/default"
+		    },
+		    "database": {
+		    	"selected": "default",
+		        "default": {
+		        	"create_time": str(self.start_date),
+		        	"path": "database/default",
+		        	"embedding_model": "all-minilm:latest",
+		        	"Remarks": "Default database."
+		        }
 		    },
 		    "llm_model": {
 		        "selected": "llama3.2:3b",
@@ -96,7 +110,7 @@ class SettingController():
 
 	def change_database(self, database):
 
-		self.setting['paramater']['database'] = 'database/'+database
+		self.setting['database']['selected'] = database
 
 		self.generate_setting(self.setting)
 

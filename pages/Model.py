@@ -20,15 +20,11 @@ embedding_model_disabled = True if len(DatabaseController.calculate_existing_ids
 
 def change_llm_model():
     SettingController.change_llm_model(st.session_state.llm_model)
-    if '請重新選擇' in list_llm_model:
-        list_llm_model.remove('請重新選擇')
 
 #-----------------------------------------------------------------------------#
 
 def change_embedding_model():
     SettingController.change_embedding_model(st.session_state.embedding_model)
-    if '請重新選擇' in list_embedding_model:
-        list_embedding_model.remove('請重新選擇')
 
 #-----------------------------------------------------------------------------#
 
@@ -125,21 +121,20 @@ if selected_llm in list_llm_model:
     index_llm = list_llm_model.index(selected_llm)
 else:
     llm_warning.error(f'{selected_llm}語言模型不存在，請重新選擇。', icon="🚨")
-    list_llm_model.insert(0, '請重新選擇')
-    index_llm = 0
+    index_llm = None
 
 if selected_embedding in list_embedding_model:
     index_embedding = list_embedding_model.index(selected_embedding)
 else:
     embedding_warning.error(f'{selected_embedding}嵌入模型不存在，請重新選擇。', icon="🚨")
-    list_embedding_model.insert(0, '請重新選擇')
-    index_embedding = 0
+    index_embedding = None
 
 st.selectbox("請選擇語言模型", 
     list_llm_model, 
     on_change=change_llm_model, 
     key='llm_model', 
-    index=index_llm
+    index=index_llm,
+    placeholder='語言模型不存在，請重新選擇。'
     )
 
 st.selectbox("請選擇嵌入模型", 
@@ -147,7 +142,8 @@ st.selectbox("請選擇嵌入模型",
     on_change=change_embedding_model, 
     key='embedding_model', 
     index=index_embedding,
-    disabled=embedding_model_disabled
+    disabled=embedding_model_disabled,
+    placeholder='嵌入模型不存在，請重新選擇。'
     )
 
 embedding_warning = st.empty()

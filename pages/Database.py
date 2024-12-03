@@ -11,9 +11,15 @@ import os
 #=============================================================================#
 
 SettingController = SettingController()
-database_path     = SettingController.setting['paramater']['database']
+list_database     = list(SettingController.setting['database'].keys())[1:]
+selected_database = SettingController.setting['database']['selected']
 
 DatabaseController = DatabaseController()
+
+#=============================================================================#
+
+def change_database():
+    SettingController.change_database(st.session_state.database)
 
 #=============================================================================#
 
@@ -115,7 +121,21 @@ st.title("資料庫")
 
 #-----------------------------------------------------------------------------#
 
-st.write("正在使用的資料庫：" + database_path.split('/')[-1])
+database_warning = st.empty()
+
+if selected_database in list_database:
+    index_database = list_database.index(selected_database)
+else:
+    database_warning.error(f'{selected_database}資料庫不存在，請重新選擇。', icon="🚨")
+    index_database = None
+
+st.selectbox("正在使用的資料庫：", 
+    list_database, 
+    on_change=change_database, 
+    key='database', 
+    index=index_database,
+    placeholder='資料庫不存在，請重新選擇。'
+    )
 
 #-----------------------------------------------------------------------------#
 

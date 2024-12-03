@@ -4,15 +4,24 @@
         "query_num": 5,
         "database": "database/default"
     },
+    "database": {
+        "selected": "default",
+        "default": {
+            "create_time": "2024/12/04 00:56:12",
+            "path": "database/default",
+            "embedding_model": "all-minilm:latest",
+            "Remarks": "Default database."
+        }
+    },
     "llm_model": {
-        "selected": "llama3.2-vision:latest",
+        "selected": "llama3.2:3b",
         "options": [
             "llama3.2:3b",
             "gemma2:2b"
         ]
     },
     "embedding_model": {
-        "selected": "shaw/dmeta-embedding-zh:latest",
+        "selected": "all-minilm:latest",
         "options": [
             "all-minilm:latest",
             "shaw/dmeta-embedding-zh:latest"
@@ -23,6 +32,6 @@
         "chunk_overlap": 50
     },
     "server": {
-        "base_url": "http://10.199.1.230:8082/"
+        "base_url": "http://localhost:11434"
     }
 }
