@@ -1,5 +1,6 @@
 {
     "paramater": {
+        "llm_model": "llama3.2-vision:latest",
         "prompt": "{context}\n\n---\n\n根據以上資料用繁體中文回答問題: {question}\n",
         "query_num": 2
     },
@@ -17,20 +18,6 @@
             "embedding_model": "shaw/dmeta-embedding-zh:latest",
             "Remarks": "SOP database."
         }
-    },
-    "llm_model": {
-        "selected": "llama3.2-vision:latest",
-        "options": [
-            "llama3.2:3b",
-            "gemma2:2b"
-        ]
-    },
-    "embedding_model": {
-        "selected": "shaw/dmeta-embedding-zh:latest",
-        "options": [
-            "all-minilm:latest",
-            "shaw/dmeta-embedding-zh:latest"
-        ]
     },
     "text_splitter": {
         "chunk_size": 150,

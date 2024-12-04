@@ -34,7 +34,7 @@ class DatabaseController():
         self.SettingController = SettingController()
         self.chunk_size        = self.SettingController.setting['text_splitter']['chunk_size']
         self.chunk_overlap     = self.SettingController.setting['text_splitter']['chunk_overlap']
-        llm_model              = self.SettingController.setting['llm_model']['selected']
+        llm_model              = self.SettingController.setting['paramater']['llm_model']
         base_url               = self.SettingController.setting['server']['base_url']
 
         database_name      = self.SettingController.setting['database']['selected']

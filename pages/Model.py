@@ -11,7 +11,7 @@ import humanize
 #=============================================================================#
 
 SettingController  = SettingController()
-selected_llm       = SettingController.setting['llm_model']['selected']
+selected_llm       = SettingController.setting['paramater']['llm_model']
 
 DatabaseController   = DatabaseController()
 ollama_info          = DatabaseController.ollama_to_dataframe()
