@@ -11,6 +11,7 @@ from llama_index.llms.ollama import Ollama
 
 from setting_controller import SettingController
 
+from ollama import Client
 from pathlib import Path
 
 import pandas as pd
@@ -33,15 +34,19 @@ class DatabaseController():
         self.SettingController = SettingController()
         self.chunk_size        = self.SettingController.setting['text_splitter']['chunk_size']
         self.chunk_overlap     = self.SettingController.setting['text_splitter']['chunk_overlap']
-        database_path          = self.SettingController.setting['paramater']['database']
         llm_model              = self.SettingController.setting['llm_model']['selected']
-        embedding_model        = self.SettingController.setting['embedding_model']['selected']
         base_url               = self.SettingController.setting['server']['base_url']
+
+        database_name      = self.SettingController.setting['database']['selected']
+        database_path      = self.SettingController.setting['database'][database_name]['path']
+        database_embedding = self.SettingController.setting['database'][database_name]['embedding_model']
 
         self.database  = Chroma(
             persist_directory  = database_path, 
-            embedding_function = OllamaEmbeddings(base_url=base_url, model=embedding_model)
+            embedding_function = OllamaEmbeddings(base_url=base_url, model=database_embedding)
             )
+
+        self.client = Client(host=base_url)
 
         self.time_zone = datetime.timezone(datetime.timedelta(hours=8))
         self.time_now  = datetime.datetime.now(tz=self.time_zone)
@@ -105,6 +110,25 @@ class DatabaseController():
         })
 
         return df
+
+#-----------------------------------------------------------------------------#
+
+    def ollama_to_dataframe(self):
+
+        json_info = self.client.list()
+
+        df_info = pd.DataFrame({
+            'name'              : [info['name'] for info in json_info['models']],
+            'model'             : [info['model'] for info in json_info['models']],
+            'date'              : [info['modified_at'].split("T")[0]+" "+info['modified_at'].split("T")[1].split(".")[0] for info in json_info['models']],
+            'size'              : [humanize.naturalsize(info['size'], binary=True) for info in json_info['models']],
+            'format'            : [info['details']['format'] for info in json_info['models']],
+            'family'            : [info['details']['family'] for info in json_info['models']],
+            'parameter_size'    : [info['details']['parameter_size'] for info in json_info['models']],
+            'quantization_level': [info['details']['quantization_level'] for info in json_info['models']]
+            })
+
+        return df_info
 
 #-----------------------------------------------------------------------------#
 

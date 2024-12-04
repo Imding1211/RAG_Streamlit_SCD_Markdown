@@ -8,17 +8,8 @@ import uuid
 
 #=============================================================================#
 
-SettingController = SettingController()
-LLM_MODEL         = SettingController.setting['llm_model']['selected']
-EMBEDDING_MODEL   = SettingController.setting['embedding_model']['selected']
-PROMPT_TEMPLT     = SettingController.setting['paramater']['prompt']
-QUERY_NUM         = SettingController.setting['paramater']['query_num']
-CHROMA_PATH       = SettingController.setting['paramater']['database']
-
 DatabaseController = DatabaseController()
-database           = DatabaseController.database
-
-QueryController = QueryController()
+QueryController    = QueryController()
 
 #=============================================================================#
 

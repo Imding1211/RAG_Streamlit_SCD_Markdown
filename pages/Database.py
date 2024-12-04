@@ -10,16 +10,25 @@ import os
 
 #=============================================================================#
 
-SettingController = SettingController()
-list_database     = list(SettingController.setting['database'].keys())[1:]
-selected_database = SettingController.setting['database']['selected']
+SettingController  = SettingController()
+list_database      = list(SettingController.setting['database'].keys())[1:]
+selected_database  = SettingController.setting['database']['selected']
+selected_embedding = SettingController.setting['database'][selected_database]['embedding_model']
 
-DatabaseController = DatabaseController()
+DatabaseController       = DatabaseController()
+ollama_info              = DatabaseController.ollama_to_dataframe()
+list_embedding_model     = ollama_info[ollama_info["family"] == "bert"]["name"].tolist()
+embedding_model_disabled = True if len(DatabaseController.calculate_existing_ids()) != 0 else False
 
 #=============================================================================#
 
 def change_database():
     SettingController.change_database(st.session_state.database)
+
+#-----------------------------------------------------------------------------#
+
+def change_embedding_model():
+    SettingController.change_embedding_model(selected_database, st.session_state.embedding_model)
 
 #=============================================================================#
 
@@ -115,11 +124,60 @@ selected_config = {
     ),
 }
 
+info_config = {
+    "name": st.column_config.TextColumn(
+        "建立名稱", 
+        help="建立模型時的名稱", 
+        max_chars=100, 
+        width="small"
+    ),
+    "model": st.column_config.TextColumn(
+        "模型名稱", 
+        help="模型名稱", 
+        max_chars=100, 
+        width="small"
+    ),
+    "date": st.column_config.TextColumn(
+        "建立日期", 
+        help="模型建立日期", 
+        max_chars=100, 
+        width="small"
+    ),
+    "size": st.column_config.TextColumn(
+        "模型大小", 
+        help="模型大小", 
+        max_chars=100, 
+        width="small"
+    ),
+    "format": st.column_config.TextColumn(
+        "模型格式", 
+        help="模型格式", 
+        max_chars=100, 
+        width="small"
+    ),
+    "family": st.column_config.TextColumn(
+        "模型家族", 
+        help="模型家族", 
+        max_chars=100, 
+        width="small"
+    ),
+    "parameter_size": st.column_config.TextColumn(
+        "模型參數量", 
+        help="模型參數量", 
+        max_chars=100, 
+        width="small"
+    ),
+    "quantization_level": st.column_config.TextColumn(
+        "量化等級", 
+        help="量化等級", 
+        max_chars=100, 
+        width="small"
+    ),
+}
+
 #=============================================================================#
 
-st.title("資料庫")
-
-#-----------------------------------------------------------------------------#
+st.header("資料庫")
 
 database_warning = st.empty()
 
@@ -129,7 +187,7 @@ else:
     database_warning.error(f'{selected_database}資料庫不存在，請重新選擇。', icon="🚨")
     index_database = None
 
-st.selectbox("正在使用的資料庫：", 
+st.selectbox("請選擇要使用的資料庫：", 
     list_database, 
     on_change=change_database, 
     key='database', 
@@ -139,10 +197,47 @@ st.selectbox("正在使用的資料庫：",
 
 #-----------------------------------------------------------------------------#
 
+if selected_embedding in list_embedding_model:
+    index_embedding = list_embedding_model.index(selected_embedding)
+else:
+    embedding_warning.error(f'{selected_embedding}嵌入模型不存在，請重新選擇。', icon="🚨")
+    index_embedding = None
+
+st.selectbox("請選擇嵌入模型:", 
+    list_embedding_model, 
+    on_change=change_embedding_model, 
+    key='embedding_model', 
+    index=index_embedding,
+    disabled=embedding_model_disabled,
+    placeholder='嵌入模型不存在，請重新選擇。'
+    )
+
+embedding_warning = st.empty()
+
+if embedding_model_disabled:
+    embedding_warning.warning('資料庫有資料時無法更換嵌入模型。', icon="⚠️")
+
+st.write("嵌入模型列表:")
+
+st.dataframe(
+    ollama_info[ollama_info["family"] == "bert"],
+    column_config=info_config,
+    use_container_width=True,
+    hide_index=True
+    )
+
+#-----------------------------------------------------------------------------#
+
+st.divider()
+
+#-----------------------------------------------------------------------------#
+
+st.header("資料上傳")
+
 database_status = st.empty()
 
 files = st.file_uploader(
-    "請選擇要上傳的PDF", 
+    "請選擇要上傳的PDF:", 
     type="pdf", 
     accept_multiple_files=True, 
     label_visibility="visible",
@@ -190,6 +285,8 @@ df_result = df.merge(df_selected, on=['source', 'start_date'])
 #-----------------------------------------------------------------------------#
 
 st.divider()
+
+#-----------------------------------------------------------------------------#
 
 st.header("資料預覽")
 

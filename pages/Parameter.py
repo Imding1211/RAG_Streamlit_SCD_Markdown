@@ -8,7 +8,7 @@ import streamlit as st
 SettingController      = SettingController()
 selected_prompt        = SettingController.setting['paramater']['prompt']
 selected_query_num     = SettingController.setting['paramater']['query_num']
-selected_database      = SettingController.setting['paramater']['database']
+selected_database      = SettingController.setting['database']['selected']
 selected_chunk_size    = SettingController.setting['text_splitter']['chunk_size']
 selected_chunk_overlap = SettingController.setting['text_splitter']['chunk_overlap']
 selected_base_url      = SettingController.setting['server']['base_url']
@@ -17,11 +17,6 @@ selected_base_url      = SettingController.setting['server']['base_url']
 
 def change_query_num():
 	SettingController.change_query_num(st.session_state.query_num)
-
-#-----------------------------------------------------------------------------#
-
-def change_database():
-	SettingController.change_database(st.session_state.database)
 	
 #=============================================================================#
 
@@ -40,19 +35,6 @@ query_num_container.slider("資料檢索數量",
 	on_change=change_query_num,
 	key="query_num",
 	)
-
-#-----------------------------------------------------------------------------#
-
-database_container = st.container(border=True)
-
-database_container.text_input("資料庫名稱", 
-	selected_database.split('/')[-1],
-	key="database",
-	)
-
-if database_container.button("確認", key=1):
-	SettingController.change_database(st.session_state.database)
-	st.toast('資料庫名稱已更新。')
 
 #-----------------------------------------------------------------------------#
 

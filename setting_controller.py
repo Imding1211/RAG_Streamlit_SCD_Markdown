@@ -15,8 +15,7 @@ class SettingController():
 		self.default_setting = {
 		    "paramater": {
 		        "prompt": "{context}\n\n---\n\n根據以上資料用繁體中文回答問題: {question}\n",
-		        "query_num": 5,
-		        "database": "database/default"
+		        "query_num": 5
 		    },
 		    "database": {
 		    	"selected": "default",
@@ -82,11 +81,11 @@ class SettingController():
 
 #-----------------------------------------------------------------------------#
 
-	def change_embedding_model(self, model_name):
+	def change_embedding_model(self, database, model_name):
 
 		if len(model_name) > 0:
 
-			self.setting['embedding_model']['selected'] = model_name
+			self.setting['database'][database]['embedding_model'] = model_name
 
 			self.generate_setting(self.setting)
 

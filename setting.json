@@ -1,27 +1,32 @@
 {
     "paramater": {
         "prompt": "{context}\n\n---\n\n根據以上資料用繁體中文回答問題: {question}\n",
-        "query_num": 5,
-        "database": "database/default"
+        "query_num": 2
     },
     "database": {
-        "selected": "default",
+        "selected": "SOP",
         "default": {
             "create_time": "2024/12/04 00:56:12",
             "path": "database/default",
             "embedding_model": "all-minilm:latest",
             "Remarks": "Default database."
+        },
+        "SOP": {
+            "create_time": "2024/12/04 13:39:00",
+            "path": "database/SOP",
+            "embedding_model": "shaw/dmeta-embedding-zh:latest",
+            "Remarks": "SOP database."
         }
     },
     "llm_model": {
-        "selected": "llama3.2:3b",
+        "selected": "llama3.2-vision:latest",
         "options": [
             "llama3.2:3b",
             "gemma2:2b"
         ]
     },
     "embedding_model": {
-        "selected": "all-minilm:latest",
+        "selected": "shaw/dmeta-embedding-zh:latest",
         "options": [
             "all-minilm:latest",
             "shaw/dmeta-embedding-zh:latest"
@@ -32,6 +37,6 @@
         "chunk_overlap": 50
     },
     "server": {
-        "base_url": "http://localhost:11434"
+        "base_url": "http://10.199.1.230:8082/"
     }
 }
