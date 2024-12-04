@@ -7,16 +7,16 @@
     "database": {
         "selected": "SOP",
         "default": {
-            "create_time": "2024/12/04 00:56:12",
+            "create_time": "2024/12/04 23:53:17",
             "path": "database/default",
             "embedding_model": "all-minilm:latest",
-            "Remarks": "Default database."
+            "remarks": "Default database."
         },
         "SOP": {
-            "create_time": "2024/12/04 13:39:00",
+            "create_time": "2024/12/05 00:16:58",
             "path": "database/SOP",
             "embedding_model": "shaw/dmeta-embedding-zh:latest",
-            "Remarks": "SOP database."
+            "remarks": ""
         }
     },
     "text_splitter": {
@@ -24,6 +24,6 @@
         "chunk_overlap": 50
     },
     "server": {
-        "base_url": "http://10.199.1.230:8082/"
+        "base_url": "http://localhost:11434/"
     }
 }

@@ -14,6 +14,7 @@ SettingController  = SettingController()
 list_database      = list(SettingController.setting['database'].keys())[1:]
 selected_database  = SettingController.setting['database']['selected']
 selected_embedding = SettingController.setting['database'][selected_database]['embedding_model']
+index_database     = list_database.index(selected_database)
 
 DatabaseController       = DatabaseController()
 ollama_info              = DatabaseController.ollama_to_dataframe()
@@ -29,6 +30,28 @@ def change_database():
 
 def change_embedding_model():
     SettingController.change_embedding_model(selected_database, st.session_state.embedding_model)
+
+#-----------------------------------------------------------------------------#
+
+@st.dialog("新增資料庫")
+def add_database():
+    database = st.text_input("輸入資料庫名稱:")
+    model    = st.selectbox("選擇嵌入模型:", list_embedding_model, index=None, placeholder="請選擇嵌入模型")
+    remarks  = st.text_area("資料庫備注")
+
+    if st.button("確認", key=5):
+        SettingController.add_database(database, model, remarks)
+        st.rerun()
+
+#-----------------------------------------------------------------------------#
+
+@st.dialog("移除資料庫")
+def remove_database():
+    database = st.selectbox("選擇資料庫:", list_database, index=None, placeholder="請選擇資料庫")
+
+    if st.button("確認", key=6):
+        SettingController.remove_database(database)
+        st.rerun()
 
 #=============================================================================#
 
@@ -179,13 +202,9 @@ info_config = {
 
 st.header("資料庫")
 
-database_warning = st.empty()
+#-----------------------------------------------------------------------------#
 
-if selected_database in list_database:
-    index_database = list_database.index(selected_database)
-else:
-    database_warning.error(f'{selected_database}資料庫不存在，請重新選擇。', icon="🚨")
-    index_database = None
+database_warning = st.empty()
 
 st.selectbox("請選擇要使用的資料庫：", 
     list_database, 
@@ -217,14 +236,20 @@ embedding_warning = st.empty()
 if embedding_model_disabled:
     embedding_warning.warning('資料庫有資料時無法更換嵌入模型。', icon="⚠️")
 
-st.write("嵌入模型列表:")
+db_col1, db_col2 = st.columns([9,1])
 
-st.dataframe(
+db_col1.dataframe(
     ollama_info[ollama_info["family"] == "bert"],
     column_config=info_config,
     use_container_width=True,
     hide_index=True
     )
+
+if db_col2.button("新增", key=1):
+    add_database()
+
+if db_col2.button("刪除", key=2):
+    remove_database()
 
 #-----------------------------------------------------------------------------#
 
@@ -245,9 +270,9 @@ files = st.file_uploader(
 
 #-----------------------------------------------------------------------------#
 
-col1, col2 = st.columns([9,1])
+PDF_col1, PDF_col2 = st.columns([9,1])
 
-if col2.button("更新"):
+if PDF_col2.button("更新", key=3):
 
     with database_status.status('資料處理中...', expanded=True) as update_status:
 
@@ -267,7 +292,7 @@ df_event = df.loc[df.groupby(['source', 'start_date'])['size'].idxmax(), ['sourc
 
 df_event = df_event.sort_values(by='start_date', ascending=False)
 
-event = col1.dataframe(
+event = PDF_col1.dataframe(
     df_event,
     column_config=event_config,
     use_container_width=True,
@@ -297,7 +322,7 @@ st.dataframe(
     hide_index=True
     )
 
-if col2.button('刪除'):
+if PDF_col2.button('刪除', key=4):
 
     with database_status.status('資料刪除中...', expanded=True) as remove_status:
 

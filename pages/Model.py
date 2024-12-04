@@ -85,7 +85,9 @@ info_config = {
 
 #=============================================================================#
 
-st.subheader("語言模型")
+st.header("語言模型")
+
+#-----------------------------------------------------------------------------#
 
 llm_warning       = st.empty()
 embedding_warning = st.empty()
@@ -105,8 +107,6 @@ st.selectbox("請選擇語言模型:",
     index=index_llm,
     placeholder='語言模型不存在，請重新選擇。'
     )
-
-st.write("語言模型列表:")
 
 st.dataframe(
     ollama_info[ollama_info["family"] != "bert"],

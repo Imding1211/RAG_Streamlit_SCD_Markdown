@@ -14,38 +14,25 @@ class SettingController():
 
 		self.default_setting = {
 		    "paramater": {
+		        "llm_model": "llama3.2-vision:latest",
 		        "prompt": "{context}\n\n---\n\n根據以上資料用繁體中文回答問題: {question}\n",
-		        "query_num": 5
+		        "query_num": 2
 		    },
 		    "database": {
-		    	"selected": "default",
+		        "selected": "default",
 		        "default": {
-		        	"create_time": str(self.start_date),
-		        	"path": "database/default",
-		        	"embedding_model": "all-minilm:latest",
-		        	"Remarks": "Default database."
+		            "create_time": self.start_date,
+		            "path": "database/default",
+		            "embedding_model": "all-minilm:latest",
+		            "remarks": "Default database."
 		        }
-		    },
-		    "llm_model": {
-		        "selected": "llama3.2:3b",
-		        "options": [
-		        	"llama3.2:3b",
-		            "gemma2:2b"
-		        ]
-		    },
-		    "embedding_model": {
-		        "selected": "all-minilm:latest",
-		        "options": [
-		            "all-minilm:latest",
-		            "shaw/dmeta-embedding-zh:latest"
-		        ]
 		    },
 		    "text_splitter": {
 		        "chunk_size": 150,
 		        "chunk_overlap": 50
 		    },
 		    "server": {
-		        "base_url": "http://localhost:11434"
+		        "base_url": "http://localhost:11434/"
 		    }
 		}
 
@@ -81,11 +68,11 @@ class SettingController():
 
 #-----------------------------------------------------------------------------#
 
-	def change_embedding_model(self, database, model_name):
+	def change_embedding_model(self, model_name):
 
 		if len(model_name) > 0:
 
-			self.setting['database'][database]['embedding_model'] = model_name
+			self.setting['embedding_model']['selected'] = model_name
 
 			self.generate_setting(self.setting)
 
@@ -133,46 +120,28 @@ class SettingController():
 
 #-----------------------------------------------------------------------------#
 
-	def add_llm_model(self, model_name):
+	def add_database(self, database, model, remarks):
 
-		if len(model_name) > 0:
+		new_database = {
+		    "create_time": self.start_date,
+		    "path": "database/" + database,
+		    "embedding_model": model,
+		    "remarks": remarks
+		}
 
-			self.setting['llm_model']['options'].append(model_name)
+		self.setting['database'][database] = new_database
 
-			self.generate_setting(self.setting)
+		self.setting['database']['selected'] = database
 
-#-----------------------------------------------------------------------------#
-
-	def add_embedding_model(self, model_name):
-
-		if len(model_name) > 0:
-
-			self.setting['embedding_model']['options'].append(model_name)
-
-			self.generate_setting(self.setting)
+		self.generate_setting(self.setting)
 
 #-----------------------------------------------------------------------------#
 
-	def remove_llm_model(self, model_name):
+	def remove_database(self, database):
 
-		if len(model_name) > 0:
+		if database in self.setting["database"]:
+			del self.setting["database"][database]
 
-			self.setting['llm_model']['options'].remove(model_name)
-
-			if self.setting['llm_model']['selected'] == model_name:
-				self.setting['llm_model']['selected'] = self.setting['llm_model']['options'][0]
-
-			self.generate_setting(self.setting)
-
-#-----------------------------------------------------------------------------#
-
-	def remove_embedding_model(self, model_name):
-
-		if len(model_name) > 0:
-
-			self.setting['embedding_model']['options'].remove(model_name)
-
-			if self.setting['embedding_model']['selected'] == model_name:
-				self.setting['embedding_model']['selected'] = self.setting['embedding_model']['options'][0]
+			self.setting['database']['selected'] = list(self.setting["database"].keys())[1]
 
 			self.generate_setting(self.setting)
