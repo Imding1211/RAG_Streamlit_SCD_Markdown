@@ -8,6 +8,9 @@ import uuid
 
 #=============================================================================#
 
+SettingController  = SettingController()
+selected_query_num = SettingController.setting['paramater']['query_num']
+
 DatabaseController = DatabaseController()
 QueryController    = QueryController()
 
@@ -35,6 +38,9 @@ if "messages" not in st.session_state or "memory" not in st.session_state:
     st.session_state.messages.append({"role": "assistant", "content": info, "source": []})
     st.session_state.memory.append({"role": "assistant", "content": info, "source": []})
 
+if "preview" not in st.session_state:
+    st.session_state.preview = {}
+
 #=============================================================================#
 
 st.header("資料查詢")
@@ -59,18 +65,18 @@ for message in st.session_state.messages[1:]:
             st.markdown(message["content"])
 
             if len(message["source"]):
-                st.caption("資料來源: " + ", ".join(message["source"]))
+                st.caption("參考資料來源: " + ", ".join(message["source"]))
 
                 st.divider()
 
-                st.caption("資料下載:")
+                st.caption("參考資料下載:")
                 download_buttons = []
                 for index, source in enumerate(message["source"]):
                     download_buttons.append(st.download_button(key=uuid.uuid4(), label=source, data=load_PDF(source), file_name=source, mime='application/octet-stream'))
 
 #-----------------------------------------------------------------------------#
 
-if question := st.chat_input("輸入問題"):
+if question := st.chat_input("輸入問題:"):
 
     with chat_container.chat_message("user", avatar="🦖"):
         st.markdown(question)
@@ -79,10 +85,11 @@ if question := st.chat_input("輸入問題"):
 
     results, sources = QueryController.generate_results(question)
 
-    prompt, raw_text = QueryController.generate_prompt(question, results)
+    prompt, preview_text = QueryController.generate_prompt(question, results)
 
     st.session_state.messages.append({"role": "user", "content": question, "source": []})
     st.session_state.memory.append({"role": "user", "content": prompt, "source": []})
+    st.session_state.preview = preview_text
 
 #-----------------------------------------------------------------------------#
 
@@ -104,5 +111,9 @@ if question := st.chat_input("輸入問題"):
     st.session_state.messages.append({"role": "assistant", "content": response, "source": sources})
     st.session_state.memory.append({"role": "assistant", "content": response, "source": sources})
 
-    text_container.markdown(raw_text, unsafe_allow_html=True)
+#-----------------------------------------------------------------------------#
+
+if len(st.session_state.preview):
+    source_title = text_container.selectbox("參考資料預覽:", list(st.session_state.preview.keys()), index=0)
+    text_container.markdown(st.session_state.preview[source_title], unsafe_allow_html=True)
 

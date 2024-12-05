@@ -5,7 +5,7 @@
         "query_num": 2
     },
     "database": {
-        "selected": "SOP",
+        "selected": "Paper",
         "default": {
             "create_time": "2024/12/04 23:53:17",
             "path": "database/default",
@@ -15,6 +15,18 @@
         "SOP": {
             "create_time": "2024/12/05 00:16:58",
             "path": "database/SOP",
+            "embedding_model": "shaw/dmeta-embedding-zh:latest",
+            "remarks": ""
+        },
+        "Paper": {
+            "create_time": "2024/12/05 15:25:11",
+            "path": "database/Paper",
+            "embedding_model": "all-minilm:latest",
+            "remarks": "有關文獻的資料庫。"
+        },
+        "Project": {
+            "create_time": "2024/12/05 15:44:56",
+            "path": "database/Project",
             "embedding_model": "shaw/dmeta-embedding-zh:latest",
             "remarks": ""
         }

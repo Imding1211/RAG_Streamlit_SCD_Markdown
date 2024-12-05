@@ -46,21 +46,20 @@ class QueryController():
         
         context_text    = "\n\n---\n\n".join(list(set([doc.metadata['raw_text'] for doc in query_results])))
         #context_text    = "\n\n---\n\n".join(list(set([doc.page_content for doc in query_results])))
+        
         prompt_template = ChatPromptTemplate.from_template(self.prompt_templt)
         prompt          = prompt_template.format(context=context_text, question=query_text)
 
         print(prompt)
 
-        raw = []
+        preview_text = {}
         for doc in query_results:
             if len(doc.metadata['image_text']):
-                raw.append(doc.metadata['image_text'])
+                preview_text[doc.metadata['title']] = doc.metadata['image_text']
             else:
-                raw.append(doc.metadata['raw_text'])
+                preview_text[doc.metadata['title']] = doc.metadata['raw_text']
 
-        raw_text = "\n\n---\n\n".join(list(set([text for text in raw])))
-
-        return prompt, raw_text
+        return prompt, preview_text
 
 #-----------------------------------------------------------------------------#
 

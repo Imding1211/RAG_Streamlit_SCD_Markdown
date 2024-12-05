@@ -1,0 +1,265 @@
+{
+    "languages": null,
+    "filetype": "pdf",
+    "pdf_toc": [
+        {
+            "title": "Introduction",
+            "level": 0,
+            "page": 1
+        },
+        {
+            "title": "Background",
+            "level": 0,
+            "page": 1
+        },
+        {
+            "title": "Model Architecture",
+            "level": 0,
+            "page": 1
+        },
+        {
+            "title": "Encoder and Decoder Stacks",
+            "level": 1,
+            "page": 2
+        },
+        {
+            "title": "Attention",
+            "level": 1,
+            "page": 2
+        },
+        {
+            "title": "Scaled Dot-Product Attention",
+            "level": 2,
+            "page": 3
+        },
+        {
+            "title": "Multi-Head Attention",
+            "level": 2,
+            "page": 3
+        },
+        {
+            "title": "Applications of Attention in our Model",
+            "level": 2,
+            "page": 4
+        },
+        {
+            "title": "Position-wise Feed-Forward Networks",
+            "level": 1,
+            "page": 4
+        },
+        {
+            "title": "Embeddings and Softmax",
+            "level": 1,
+            "page": 4
+        },
+        {
+            "title": "Positional Encoding",
+            "level": 1,
+            "page": 5
+        },
+        {
+            "title": "Why Self-Attention",
+            "level": 0,
+            "page": 5
+        },
+        {
+            "title": "Training",
+            "level": 0,
+            "page": 6
+        },
+        {
+            "title": "Training Data and Batching",
+            "level": 1,
+            "page": 6
+        },
+        {
+            "title": "Hardware and Schedule",
+            "level": 1,
+            "page": 6
+        },
+        {
+            "title": "Optimizer",
+            "level": 1,
+            "page": 6
+        },
+        {
+            "title": "Regularization",
+            "level": 1,
+            "page": 6
+        },
+        {
+            "title": "Results",
+            "level": 0,
+            "page": 7
+        },
+        {
+            "title": "Machine Translation",
+            "level": 1,
+            "page": 7
+        },
+        {
+            "title": "Model Variations",
+            "level": 1,
+            "page": 7
+        },
+        {
+            "title": "English Constituency Parsing",
+            "level": 1,
+            "page": 8
+        },
+        {
+            "title": "Conclusion",
+            "level": 0,
+            "page": 9
+        }
+    ],
+    "pages": 15,
+    "ocr_stats": {
+        "ocr_pages": 0,
+        "ocr_failed": 0,
+        "ocr_success": 0,
+        "ocr_engine": "none"
+    },
+    "block_stats": {
+        "header_footer": 0,
+        "code": 0,
+        "table": 6,
+        "equations": {
+            "successful_ocr": 7,
+            "unsuccessful_ocr": 0,
+            "equations": 7
+        }
+    },
+    "computed_toc": [
+        {
+            "title": "Attention Is All You Need",
+            "level": 1,
+            "page": 0
+        },
+        {
+            "title": "Abstract",
+            "level": 2,
+            "page": 0
+        },
+        {
+            "title": "1 Introduction",
+            "level": 2,
+            "page": 1
+        },
+        {
+            "title": "3 Model Architecture",
+            "level": 3,
+            "page": 1
+        },
+        {
+            "title": "2 Background",
+            "level": 2,
+            "page": 1
+        },
+        {
+            "title": "3.2 Attention",
+            "level": 3,
+            "page": 2
+        },
+        {
+            "title": "3.1 Encoder and Decoder Stacks",
+            "level": 3,
+            "page": 2
+        },
+        {
+            "title": "3.2.1 Scaled Dot-Product Attention",
+            "level": 3,
+            "page": 3
+        },
+        {
+            "title": "3.2.2 Multi-Head Attention",
+            "level": 3,
+            "page": 3
+        },
+        {
+            "title": "3.2.3 Applications of Attention in our Model",
+            "level": 3,
+            "page": 4
+        },
+        {
+            "title": "3.3 Position-wise Feed-Forward Networks",
+            "level": 3,
+            "page": 4
+        },
+        {
+            "title": "3.4 Embeddings and Softmax",
+            "level": 3,
+            "page": 4
+        },
+        {
+            "title": "4 Why Self-Attention",
+            "level": 2,
+            "page": 5
+        },
+        {
+            "title": "3.5 Positional Encoding",
+            "level": 3,
+            "page": 5
+        },
+        {
+            "title": "5 Training",
+            "level": 2,
+            "page": 6
+        },
+        {
+            "title": "5.1 Training Data and Batching",
+            "level": 3,
+            "page": 6
+        },
+        {
+            "title": "5.2 Hardware and Schedule",
+            "level": 3,
+            "page": 6
+        },
+        {
+            "title": "5.3 Optimizer",
+            "level": 3,
+            "page": 6
+        },
+        {
+            "title": "5.4 Regularization",
+            "level": 3,
+            "page": 6
+        },
+        {
+            "title": "6 Results",
+            "level": 2,
+            "page": 7
+        },
+        {
+            "title": "6.1 Machine Translation",
+            "level": 3,
+            "page": 7
+        },
+        {
+            "title": "6.2 Model Variations",
+            "level": 3,
+            "page": 7
+        },
+        {
+            "title": "6.3 English Constituency Parsing",
+            "level": 3,
+            "page": 8
+        },
+        {
+            "title": "7 Conclusion",
+            "level": 2,
+            "page": 9
+        },
+        {
+            "title": "References",
+            "level": 2,
+            "page": 9
+        },
+        {
+            "title": "Attention Visualizations\nInput-Input Layer5 ",
+            "level": 2,
+            "page": 12
+        }
+    ]
+}
