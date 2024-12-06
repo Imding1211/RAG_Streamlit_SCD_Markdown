@@ -2,10 +2,10 @@
     "paramater": {
         "llm_model": "llama3.2-vision:latest",
         "prompt": "{context}\n\n---\n\n根據以上資料用繁體中文回答問題: {question}\n",
-        "query_num": 2
+        "query_num": 1
     },
     "database": {
-        "selected": "Paper",
+        "selected": "default",
         "default": {
             "create_time": "2024/12/04 23:53:17",
             "path": "database/default",
@@ -36,6 +36,6 @@
         "chunk_overlap": 50
     },
     "server": {
-        "base_url": "http://localhost:11434/"
+        "base_url": "http://10.199.1.230:8082/"
     }
 }

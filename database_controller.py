@@ -138,18 +138,16 @@ class DatabaseController():
 
         print(PDF_name)
 
-        meta = self.load_meta(PDF_name, current_version)
-
         markdown = self.load_markdown(PDF_name, current_version)
 
-        PDF_info = self.markdown_to_section(PDF_name, markdown, meta, current_version)
+        PDF_info = self.markdown_to_section(PDF_name, markdown, current_version)
 
         PDF_info = self.create_propositions(PDF_info)
 
         self.save_json(PDF_name, PDF_info, current_version)
 
         #PDF_info = self.load_json(PDF_name, current_version)
-
+        
         for info in PDF_info["sections"]:
 
             metadata = {
@@ -247,7 +245,9 @@ class DatabaseController():
 
 #-----------------------------------------------------------------------------#
 
-    def markdown_to_section(self, PDF_name, markdown, meta, current_version):
+    def markdown_to_section(self, PDF_name, markdown, current_version):
+
+        meta = self.load_meta(PDF_name, current_version)
 
         PDF_info = {
             "PDF_name" : PDF_name,
