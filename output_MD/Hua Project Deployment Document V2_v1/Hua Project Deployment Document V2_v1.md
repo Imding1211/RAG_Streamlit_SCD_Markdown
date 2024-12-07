@@ -561,12 +561,12 @@ All the process groups and the changes need to be made are shown below:
 
 and click PARAMETERS tag.
 
+- Click the plus sign and enter the name and check the Set empty String box, then click apply. Repeat this step for all the names below:
+- careDate - itemDate - measurementDate
 - Click Pareameter Contexts
 
 ![34_image_0.png](34_image_0.png)
 
-- Click the plus sign and enter the name and check the Set empty String box, then click apply. Repeat this step for all the names below:
-- careDate - itemDate - measurementDate
 - transactinDate - treatementDate - userDate
 - set value:
 - max last_update_date for tables:
@@ -1136,7 +1136,7 @@ in MS SQL
 a. hlscdwdb_dm_dev.*rpt_weekly_total_borrower* b. hlscdwdb_dm_dev.*rpt_weekly_total_borrower_rank*
 - Job frequency 06:00am on Sundays Hua    TCY 黃向偉 08_jb_weekly_book_per_person_rank:
 - Logic:
-\#insert \#calculate 07:00am on Sundays a. **jb_week_book_per_person_rank**:
+\#insert \#calculate a. **jb_week_book_per_person_rank**:
 以鄉鎮區,縣市為基準,**分別計算最近一週人均借**閱冊數,並計 算在鄉**鎮區級及縣市級的**PR值
 
 #### B. Jb_Update_Cityamount:
@@ -1149,3 +1149,4 @@ a. hlscdwdb_dm_dev.*rpt_weekly_book_borrowed* b. hlscdwdb_dm_dev.*rpt_weekly_tot
 in MS SQL
 a. hlscdwdb_dm_dev.*rpt_weekly_book_per_person_rank*
 - Job frequency:
+07:00am on Sundays

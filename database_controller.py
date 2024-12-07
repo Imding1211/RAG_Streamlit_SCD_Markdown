@@ -61,7 +61,7 @@ class DatabaseController():
 
         self.llm = Ollama(
             model='llama3.2:3b', 
-            request_timeout=120.0, 
+            request_timeout=600.0, 
             base_url=base_url, 
             json_mode=True
             )
@@ -249,6 +249,8 @@ class DatabaseController():
 
         meta = self.load_meta(PDF_name, current_version)
 
+        headers = ["#"*hd["level"] + " " + hd["title"] for hd in meta["computed_toc"]]
+
         PDF_info = {
             "PDF_name" : PDF_name,
             "sections" :[]
@@ -275,21 +277,22 @@ class DatabaseController():
             PDF_info["sections"].append(section_info)
             section_id += 1
 
-        pattern = "|".join(re.escape(header["title"]) for header in meta["computed_toc"])
+            self.save_json(PDF_name, PDF_info, current_version)
 
-        content_list = re.split(f"({pattern})", markdown)
+        pattern      = '|'.join(re.escape(header) for header in headers)
+        content_list = re.split(f'(?i)({pattern})', markdown)
 
         for index in range(1, len(content_list), 2):
 
             title    = content_list[index].strip()
-            raw_text = content_list[index + 1].strip()
+            raw_text = content_list[index + 1].strip() if index + 1 < len(content_list) else ""
 
             section_info = {
                 "ID"           : section_id,
                 "type"         : "Text",
                 "title"        : title,
                 "raw_text"     : raw_text,
-                "propositions" : [f"段落標題:{content_list[index].strip()}"],
+                "propositions" : [f"Title:{content_list[index].split(' ', maxsplit=1)[-1].strip()}"],
                 "image_text"   : raw_text,
                 "image"        : []
             }
@@ -326,6 +329,8 @@ class DatabaseController():
 
             PDF_info["sections"].append(section_info)
             section_id += 1
+
+            self.save_json(PDF_name, PDF_info, current_version)
 
         return PDF_info
 
@@ -476,6 +481,8 @@ class DatabaseController():
 
             except:
                 info["propositions"] = response.message.content
+
+                print(response.message.content)
 
                 print("Formatted output failed.")
 
