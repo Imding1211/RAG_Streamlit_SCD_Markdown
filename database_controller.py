@@ -41,7 +41,7 @@ class DatabaseController():
         database_path      = self.SettingController.setting['database'][self.database_name]['path']
         database_embedding = self.SettingController.setting['database'][self.database_name]['embedding_model']
 
-        self.database  = Chroma(
+        self.database = Chroma(
             persist_directory  = database_path, 
             embedding_function = OllamaEmbeddings(base_url=base_url, model=database_embedding)
             )
@@ -284,7 +284,7 @@ class DatabaseController():
 
         for index in range(1, len(content_list), 2):
 
-            title    = content_list[index].strip()
+            title    = content_list[index].split(' ', maxsplit=1)[-1].strip()
             raw_text = content_list[index + 1].strip() if index + 1 < len(content_list) else ""
 
             section_info = {
@@ -292,7 +292,7 @@ class DatabaseController():
                 "type"         : "Text",
                 "title"        : title,
                 "raw_text"     : raw_text,
-                "propositions" : [f"Title:{content_list[index].split(' ', maxsplit=1)[-1].strip()}"],
+                "propositions" : [f"Title:{title}"],
                 "image_text"   : raw_text,
                 "image"        : []
             }

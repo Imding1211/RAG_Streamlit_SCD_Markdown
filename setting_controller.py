@@ -150,6 +150,7 @@ class SettingController():
 				else:
 					print(f"{folder_path}已存在")
 
+			
 #-----------------------------------------------------------------------------#
 
 	def remove_database(self, database):
