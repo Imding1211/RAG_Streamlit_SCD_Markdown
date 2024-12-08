@@ -10,6 +10,7 @@ import uuid
 
 SettingController  = SettingController()
 selected_query_num = SettingController.setting['paramater']['query_num']
+database_name      = SettingController.setting['database']['selected']
 
 DatabaseController = DatabaseController()
 QueryController    = QueryController()
@@ -17,7 +18,7 @@ QueryController    = QueryController()
 #=============================================================================#
 
 def load_PDF(PDF_name):
-    with open(f"save_PDF/{PDF_name}", "rb") as PDF_file:
+    with open(f"storage/{database_name}/save_PDF/{PDF_name}", "rb") as PDF_file:
         PDF = PDF_file.read()
 
     return PDF

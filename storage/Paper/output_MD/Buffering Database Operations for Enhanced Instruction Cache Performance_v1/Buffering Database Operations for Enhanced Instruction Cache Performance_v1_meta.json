@@ -1,0 +1,139 @@
+{
+    "languages": null,
+    "filetype": "pdf",
+    "pdf_toc": [],
+    "pages": 12,
+    "ocr_stats": {
+        "ocr_pages": 0,
+        "ocr_failed": 0,
+        "ocr_success": 0,
+        "ocr_engine": "none"
+    },
+    "block_stats": {
+        "header_footer": 0,
+        "code": 0,
+        "table": 6,
+        "equations": {
+            "successful_ocr": 1,
+            "unsuccessful_ocr": 1,
+            "equations": 2
+        }
+    },
+    "computed_toc": [
+        {
+            "title": "Buffering Database Operations for Enhanced Instruction\nCache Performance",
+            "level": 1,
+            "page": 0
+        },
+        {
+            "title": "ABSTRACT",
+            "level": 2,
+            "page": 0
+        },
+        {
+            "title": "1. INTRODUCTION",
+            "level": 2,
+            "page": 0
+        },
+        {
+            "title": "Figure 1: Operator Execution Sequence",
+            "level": 4,
+            "page": 1
+        },
+        {
+            "title": "2. RELATED WORK",
+            "level": 2,
+            "page": 1
+        },
+        {
+            "title": "3. MEMORY HIERARCHY",
+            "level": 2,
+            "page": 2
+        },
+        {
+            "title": "Table 1: System Specifications",
+            "level": 4,
+            "page": 2
+        },
+        {
+            "title": "4. PIPELINED QUERY EXECUTION",
+            "level": 2,
+            "page": 2
+        },
+        {
+            "title": "5. A NEW BUFFER OPERATOR",
+            "level": 2,
+            "page": 4
+        },
+        {
+            "title": "Figure 7: Buffer Operator",
+            "level": 4,
+            "page": 4
+        },
+        {
+            "title": "6. BUFFERING STRATEGIES",
+            "level": 2,
+            "page": 5
+        },
+        {
+            "title": "6.1 Instruction Footprint Analysis",
+            "level": 2,
+            "page": 5
+        },
+        {
+            "title": "6.2 Overall Algorithm",
+            "level": 2,
+            "page": 5
+        },
+        {
+            "title": "7. EXPERIMENTAL VALIDATION",
+            "level": 2,
+            "page": 6
+        },
+        {
+            "title": "7.1 Postgres Footprint Analysis",
+            "level": 2,
+            "page": 6
+        },
+        {
+            "title": "7.2 Validating Buffer Strategies",
+            "level": 2,
+            "page": 7
+        },
+        {
+            "title": "7.3 Cardinality Effects",
+            "level": 2,
+            "page": 7
+        },
+        {
+            "title": "7.4 Buffer Size",
+            "level": 2,
+            "page": 8
+        },
+        {
+            "title": "7.5 More Complex Queries",
+            "level": 2,
+            "page": 8
+        },
+        {
+            "title": "Figure 14: Query 3",
+            "level": 4,
+            "page": 8
+        },
+        {
+            "title": "7.6 TPC-H Queries",
+            "level": 2,
+            "page": 9
+        },
+        {
+            "title": "8. CONCLUSION AND FUTURE WORK",
+            "level": 2,
+            "page": 9
+        },
+        {
+            "title": "9. REFERENCES",
+            "level": 2,
+            "page": 10
+        }
+    ]
+}

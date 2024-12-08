@@ -5,18 +5,30 @@
         "query_num": 2
     },
     "database": {
-        "selected": "Document",
-        "default": {
-            "create_time": "2024/12/07 08:37:33",
-            "path": "database/default",
-            "embedding_model": "all-minilm:latest",
-            "remarks": "Default database."
-        },
+        "selected": "SOP",
         "Document": {
-            "create_time": "2024/12/07 08:39:48",
-            "path": "database/Document",
+            "create_time": "2024/12/08 08:45:47",
+            "path": "storage/Document/database",
             "embedding_model": "shaw/dmeta-embedding-zh:latest",
-            "remarks": "Document資料庫"
+            "remarks": ""
+        },
+        "default": {
+            "create_time": "2024/12/08 08:55:09",
+            "path": "storage/default/database",
+            "embedding_model": "all-minilm:latest",
+            "remarks": ""
+        },
+        "SOP": {
+            "create_time": "2024/12/08 09:13:05",
+            "path": "storage/SOP/database",
+            "embedding_model": "shaw/dmeta-embedding-zh:latest",
+            "remarks": "SOP資料庫"
+        },
+        "Paper": {
+            "create_time": "2024/12/08 10:07:46",
+            "path": "storage/Paper/database",
+            "embedding_model": "all-minilm:latest",
+            "remarks": ""
         }
     },
     "text_splitter": {

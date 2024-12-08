@@ -37,9 +37,9 @@ class DatabaseController():
         llm_model              = self.SettingController.setting['paramater']['llm_model']
         base_url               = self.SettingController.setting['server']['base_url']
 
-        database_name      = self.SettingController.setting['database']['selected']
-        database_path      = self.SettingController.setting['database'][database_name]['path']
-        database_embedding = self.SettingController.setting['database'][database_name]['embedding_model']
+        self.database_name = self.SettingController.setting['database']['selected']
+        database_path      = self.SettingController.setting['database'][self.database_name]['path']
+        database_embedding = self.SettingController.setting['database'][self.database_name]['embedding_model']
 
         self.database  = Chroma(
             persist_directory  = database_path, 
@@ -305,7 +305,7 @@ class DatabaseController():
 
                     image_md   = image[0]
                     image_name = image[1]
-                    image_path = f'output_MD/{PDF_name}_v{current_version+1}/{image_name}'
+                    image_path = f'storage/{self.database_name}/output_MD/{PDF_name}_v{current_version+1}/{image_name}'
                     
                     image_info = {
                         "name" : "",
@@ -516,8 +516,8 @@ class DatabaseController():
 
         for file in files:
 
-            save_path = "save_PDF/"
-            temp_path = "temp_PDF/"
+            save_path = f"storage/{self.database_name}/save_PDF/"
+            temp_path = f"temp_PDF/"
 
             current_version = self.get_version_list(PyPDF2.PdfReader(file).stream.name)[0]+1
 
@@ -535,7 +535,7 @@ class DatabaseController():
 
     def save_json(self, PDF_name, PDF_info, current_version):
 
-        path = "output_json/"
+        path = f"storage/{self.database_name}/output_json/"
 
         save_json_name = PDF_name + '_v' + str(current_version+1) + '.json'
 
@@ -546,7 +546,7 @@ class DatabaseController():
 
     def load_json(self, json_name, current_version):
 
-        path = "output_json/"
+        path = f"storage/{self.database_name}/output_json/"
 
         load_json_name = json_name + '_v' + str(current_version+1) + '.json'
 
@@ -559,7 +559,7 @@ class DatabaseController():
 
     def load_meta(self, PDF_name, current_version):
 
-        path = "output_MD/"
+        path = f"storage/{self.database_name}/output_MD/"
 
         meta_folder = PDF_name + '_v' + str(current_version+1) + '/'
 
@@ -574,7 +574,7 @@ class DatabaseController():
 
     def load_markdown(self, PDF_name, current_version):
 
-        path = "output_MD/"
+        path = f"storage/{self.database_name}/output_MD/"
 
         markdown_folder = PDF_name + '_v' + str(current_version+1) + '/'
 

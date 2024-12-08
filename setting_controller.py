@@ -1,6 +1,8 @@
 
 import datetime
+import shutil
 import json
+import os
 
 #=============================================================================#
 
@@ -22,7 +24,7 @@ class SettingController():
 		        "selected": "default",
 		        "default": {
 		            "create_time": self.start_date,
-		            "path": "database/default",
+		            "path": "storage/default/database",
 		            "embedding_model": "all-minilm:latest",
 		            "remarks": "Default database."
 		        }
@@ -122,18 +124,31 @@ class SettingController():
 
 	def add_database(self, database, model, remarks):
 
-		new_database = {
-		    "create_time": self.start_date,
-		    "path": "database/" + database,
-		    "embedding_model": model,
-		    "remarks": remarks
-		}
+		if len(database) > 0:
+			storage_path = f"storage/{database}/"
 
-		self.setting['database'][database] = new_database
+			new_database = {
+			    "create_time": self.start_date,
+			    "path": storage_path + "database",
+			    "embedding_model": model,
+			    "remarks": remarks
+			}
 
-		self.setting['database']['selected'] = database
+			self.setting['database'][database] = new_database
 
-		self.generate_setting(self.setting)
+			self.setting['database']['selected'] = database
+
+			self.generate_setting(self.setting)
+			
+			for folder in ["database", "save_PDF", "output_json", "output_MD"]:
+
+				folder_path = storage_path + folder
+
+				if not os.path.exists(folder_path):
+					os.makedirs(folder_path)
+					print(f"{folder_path}已建立")
+				else:
+					print(f"{folder_path}已存在")
 
 #-----------------------------------------------------------------------------#
 
@@ -145,3 +160,13 @@ class SettingController():
 			self.setting['database']['selected'] = list(self.setting["database"].keys())[1]
 
 			self.generate_setting(self.setting)
+
+			"""
+			folder_path = f"storage/{database}"
+
+			if os.path.exists(folder_path):
+				shutil.rmtree(folder_path)
+				print(f"{folder_path}已移除")
+			else:
+				print(f"{folder_path}不存在")
+			"""

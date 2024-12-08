@@ -13,8 +13,8 @@ import pypdfium2 # Needs to be at the top to avoid warnings
 import traceback
 import math
 import json
+import sys
 import os
-
 
 os.environ["PYTORCH_ENABLE_MPS_FALLBACK"] = "1" # For some reason, transformers decided to use .isin for a simple op, which is not supported on MPS
 os.environ["IN_STREAMLIT"] = "true" # Avoid multiprocessing inside surya
@@ -143,6 +143,9 @@ def PDF_to_MD(in_folder, out_folder, chunk_idx=0, num_chunks=1, max_num=None, wo
 
 if __name__ == "__main__":
 
-    PDF_to_MD("save_PDF", "output_MD/", chunk_idx=0, num_chunks=1, max_num=None, workers=5, metadata_file=None, min_length=None)
+    in_folder  = f"storage/{sys.argv[1]}/save_PDF/"
+    out_folder = f"storage/{sys.argv[1]}/output_MD/"
+
+    PDF_to_MD(in_folder, out_folder, chunk_idx=0, num_chunks=1, max_num=None, workers=5, metadata_file=None, min_length=None)
     
     remove_temp_PDF("temp_PDF")

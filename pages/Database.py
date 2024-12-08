@@ -10,11 +10,13 @@ import os
 
 #=============================================================================#
 
-SettingController  = SettingController()
-list_database      = list(SettingController.setting['database'].keys())[1:]
-selected_database  = SettingController.setting['database']['selected']
-selected_embedding = SettingController.setting['database'][selected_database]['embedding_model']
-index_database     = list_database.index(selected_database)
+SettingController    = SettingController()
+list_database        = list(SettingController.setting['database'].keys())[1:]
+selected_database    = SettingController.setting['database']['selected']
+selected_embedding   = SettingController.setting['database'][selected_database]['embedding_model']
+create_time_database = SettingController.setting['database'][selected_database]['create_time']
+remarks_database     = SettingController.setting['database'][selected_database]['remarks']
+index_database       = list_database.index(selected_database)
 
 DatabaseController       = DatabaseController()
 ollama_info              = DatabaseController.ollama_to_dataframe()
@@ -214,6 +216,9 @@ st.selectbox("請選擇要使用的資料庫：",
     placeholder='資料庫不存在，請重新選擇。'
     )
 
+st.write(f"建立時間：{create_time_database}")
+st.write(f"資料庫備註：{remarks_database}")
+
 #-----------------------------------------------------------------------------#
 
 if selected_embedding in list_embedding_model:
@@ -278,7 +283,7 @@ if PDF_col2.button("更新", key=3):
 
         DatabaseController.save_PDF(files)
 
-        subprocess.run([f"{sys.executable}", "convert_controller.py"])
+        subprocess.run([f"{sys.executable}", "convert_controller.py", selected_database])
 
         DatabaseController.add_database(files)
 
