@@ -1,0 +1,359 @@
+{
+    "languages": null,
+    "filetype": "pdf",
+    "pdf_toc": [],
+    "pages": 64,
+    "ocr_stats": {
+        "ocr_pages": 12,
+        "ocr_failed": 0,
+        "ocr_success": 12,
+        "ocr_engine": "surya"
+    },
+    "block_stats": {
+        "header_footer": 283,
+        "code": 0,
+        "table": 7,
+        "equations": {
+            "successful_ocr": 0,
+            "unsuccessful_ocr": 0,
+            "equations": 0
+        }
+    },
+    "computed_toc": [
+        {
+            "title": "00_DB/ VM Credential",
+            "level": 1,
+            "page": 1
+        },
+        {
+            "title": "PostgresSQL",
+            "level": 2,
+            "page": 2
+        },
+        {
+            "title": "VM for Nifi",
+            "level": 2,
+            "page": 2
+        },
+        {
+            "title": "Window Jump Machine",
+            "level": 2,
+            "page": 2
+        },
+        {
+            "title": "Mariadb",
+            "level": 2,
+            "page": 2
+        },
+        {
+            "title": "MS SQL",
+            "level": 2,
+            "page": 2
+        },
+        {
+            "title": "01_Software Installation and Setting",
+            "level": 1,
+            "page": 3
+        },
+        {
+            "title": "Install The Following Softwares on Local Machine",
+            "level": 2,
+            "page": 4
+        },
+        {
+            "title": "FileZilla Client",
+            "level": 3,
+            "page": 4
+        },
+        {
+            "title": "MariaDB",
+            "level": 3,
+            "page": 4
+        },
+        {
+            "title": "PgAdmin",
+            "level": 3,
+            "page": 4
+        },
+        {
+            "title": "Install the Following Softwares on VM",
+            "level": 2,
+            "page": 5
+        },
+        {
+            "title": "○ SQLite",
+            "level": 3,
+            "page": 6
+        },
+        {
+            "title": "○ Copy and paste the prerequisite\n\n![6_image_0.png](6_image_0.png)\n\n",
+            "level": 2,
+            "page": 6
+        },
+        {
+            "title": "○ Python",
+            "level": 3,
+            "page": 7
+        },
+        {
+            "title": "○ Airflow",
+            "level": 3,
+            "page": 7
+        },
+        {
+            "title": "○ OpenJDK8",
+            "level": 3,
+            "page": 8
+        },
+        {
+            "title": "02_DB Deployment",
+            "level": 1,
+            "page": 10
+        },
+        {
+            "title": "Database Design Framework",
+            "level": 1,
+            "page": 11
+        },
+        {
+            "title": "Staging DB-MariaDB",
+            "level": 1,
+            "page": 11
+        },
+        {
+            "title": "Data Mart-MS SQL Server Mgmt Studio",
+            "level": 2,
+            "page": 12
+        },
+        {
+            "title": "SQL Server Agent-MS SQL Server Mgmt Studio",
+            "level": 2,
+            "page": 13
+        },
+        {
+            "title": "03_Python File & CSV Location",
+            "level": 1,
+            "page": 14
+        },
+        {
+            "title": "Python:",
+            "level": 3,
+            "page": 17
+        },
+        {
+            "title": "● python",
+            "level": 4,
+            "page": 17
+        },
+        {
+            "title": "Replace:",
+            "level": 3,
+            "page": 18
+        },
+        {
+            "title": "04_Nifi Deployment",
+            "level": 1,
+            "page": 20
+        },
+        {
+            "title": "Nifi Design Framework",
+            "level": 1,
+            "page": 21
+        },
+        {
+            "title": "Import Template Into Nifi",
+            "level": 2,
+            "page": 22
+        },
+        {
+            "title": "7.  select HUA_deployment.XML and upload",
+            "level": 1,
+            "page": 23
+        },
+        {
+            "title": "Modify Connection Setting",
+            "level": 2,
+            "page": 25
+        },
+        {
+            "title": "6. enable the controller service",
+            "level": 3,
+            "page": 27
+        },
+        {
+            "title": "×\n\n![27_image_0.png](27_image_0.png)\n\n",
+            "level": 4,
+            "page": 27
+        },
+        {
+            "title": "○ HUA_MSDB_DM:",
+            "level": 4,
+            "page": 28
+        },
+        {
+            "title": "○ MSDB_DH:",
+            "level": 4,
+            "page": 28
+        },
+        {
+            "title": "● MariaDB",
+            "level": 3,
+            "page": 29
+        },
+        {
+            "title": "○ Maria_Library_STG:",
+            "level": 4,
+            "page": 30
+        },
+        {
+            "title": "● PostgreSQL",
+            "level": 3,
+            "page": 31
+        },
+        {
+            "title": "Enable All Controller Service",
+            "level": 2,
+            "page": 32
+        },
+        {
+            "title": "Example:",
+            "level": 4,
+            "page": 32
+        },
+        {
+            "title": "5.  close the DM Configuration window",
+            "level": 1,
+            "page": 33
+        },
+        {
+            "title": "mitac",
+            "level": 4,
+            "page": 37
+        },
+        {
+            "title": "Set Up Python Script for Parameter Contexts",
+            "level": 2,
+            "page": 38
+        },
+        {
+            "title": "2.  Click Parameter Contexts",
+            "level": 1,
+            "page": 39
+        },
+        {
+            "title": "Set Up Python Script for Nifi",
+            "level": 2,
+            "page": 41
+        },
+        {
+            "title": "05_CentOS資源設定",
+            "level": 1,
+            "page": 42
+        },
+        {
+            "title": "Increase \"Open Files Limit\"",
+            "level": 1,
+            "page": 43
+        },
+        {
+            "title": "2.  Add following:",
+            "level": 3,
+            "page": 44
+        },
+        {
+            "title": "❖ fs.file-max = 2097152\n\n![44_image_0.png](44_image_0.png)\n\n\n\n![44_image_1.png](44_image_1.png)\n\n",
+            "level": 3,
+            "page": 44
+        },
+        {
+            "title": "06_STG/DW/DM/JOB排程",
+            "level": 1,
+            "page": 45
+        },
+        {
+            "title": "RAW to STG",
+            "level": 2,
+            "page": 46
+        },
+        {
+            "title": "132_MiHealth2Staging:",
+            "level": 3,
+            "page": 46
+        },
+        {
+            "title": "● Targets:",
+            "level": 4,
+            "page": 46
+        },
+        {
+            "title": "210_InterRead2Staging",
+            "level": 3,
+            "page": 47
+        },
+        {
+            "title": "STG to DW",
+            "level": 2,
+            "page": 48
+        },
+        {
+            "title": "DW to DM",
+            "level": 2,
+            "page": 52
+        },
+        {
+            "title": "● Frequency:",
+            "level": 4,
+            "page": 53
+        },
+        {
+            "title": "0 */2 1,2,3,4,5,6,22,23,0 * * ?",
+            "level": 4,
+            "page": 53
+        },
+        {
+            "title": "● Frequency:",
+            "level": 4,
+            "page": 53
+        },
+        {
+            "title": "JOBs",
+            "level": 1,
+            "page": 56
+        },
+        {
+            "title": "How to Execute a Job Manually:",
+            "level": 1,
+            "page": 56
+        },
+        {
+            "title": "3. click Start.",
+            "level": 1,
+            "page": 57
+        },
+        {
+            "title": "● Targets:",
+            "level": 4,
+            "page": 59
+        },
+        {
+            "title": "05_jb_book_recommendation:",
+            "level": 3,
+            "page": 61
+        },
+        {
+            "title": "● Job frequency:",
+            "level": 4,
+            "page": 62
+        },
+        {
+            "title": "07_jb_weekly_total_borrower:",
+            "level": 3,
+            "page": 62
+        },
+        {
+            "title": "b. jb_update_cityAmount:",
+            "level": 4,
+            "page": 63
+        }
+    ]
+}

@@ -277,8 +277,6 @@ class DatabaseController():
             PDF_info["sections"].append(section_info)
             section_id += 1
 
-            self.save_json(PDF_name, PDF_info, current_version)
-
         pattern      = '|'.join(re.escape(header) for header in headers)
         content_list = re.split(f'(?i)({pattern})', markdown)
 
@@ -329,8 +327,6 @@ class DatabaseController():
 
             PDF_info["sections"].append(section_info)
             section_id += 1
-
-            self.save_json(PDF_name, PDF_info, current_version)
 
         return PDF_info
 

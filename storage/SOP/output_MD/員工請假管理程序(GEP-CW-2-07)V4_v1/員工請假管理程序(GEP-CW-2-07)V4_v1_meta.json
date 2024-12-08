@@ -1,0 +1,59 @@
+{
+    "languages": null,
+    "filetype": "pdf",
+    "pdf_toc": [],
+    "pages": 11,
+    "ocr_stats": {
+        "ocr_pages": 0,
+        "ocr_failed": 0,
+        "ocr_success": 0,
+        "ocr_engine": "none"
+    },
+    "block_stats": {
+        "header_footer": 33,
+        "code": 0,
+        "table": 9,
+        "equations": {
+            "successful_ocr": 0,
+            "unsuccessful_ocr": 0,
+            "equations": 0
+        }
+    },
+    "computed_toc": [
+        {
+            "title": "1.【目的; Purpose】:",
+            "level": 2,
+            "page": 1
+        },
+        {
+            "title": "3.【參考資料; Reference】:",
+            "level": 1,
+            "page": 1
+        },
+        {
+            "title": "4.【定義; Terminology】:",
+            "level": 2,
+            "page": 1
+        },
+        {
+            "title": "5.【作業程序; Activities & Procedure】:",
+            "level": 2,
+            "page": 2
+        },
+        {
+            "title": "5.3 處理程序(Process Description)",
+            "level": 2,
+            "page": 4
+        },
+        {
+            "title": "5.3.1 請假申請",
+            "level": 2,
+            "page": 4
+        },
+        {
+            "title": "6.【控制重點; Verification Points】:",
+            "level": 2,
+            "page": 10
+        }
+    ]
+}

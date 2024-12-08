@@ -5,12 +5,24 @@
         "query_num": 2
     },
     "database": {
-        "selected": "default",
+        "selected": "SOP",
         "default": {
-            "create_time": "2024/12/08 12:19:19",
+            "create_time": "2024/12/08 23:18:49",
             "path": "storage/default/database",
             "embedding_model": "all-minilm:latest",
             "remarks": "Default database."
+        },
+        "Document": {
+            "create_time": "2024/12/08 23:19:21",
+            "path": "storage/Document/database",
+            "embedding_model": "shaw/dmeta-embedding-zh:latest",
+            "remarks": ""
+        },
+        "SOP": {
+            "create_time": "2024/12/08 23:19:37",
+            "path": "storage/SOP/database",
+            "embedding_model": "shaw/dmeta-embedding-zh:latest",
+            "remarks": ""
         }
     },
     "text_splitter": {

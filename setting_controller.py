@@ -64,17 +64,17 @@ class SettingController():
 
 		if len(model_name) > 0:
 
-			self.setting['llm_model']['selected'] = model_name
+			self.setting['paramater']['llm_model'] = model_name
 
 			self.generate_setting(self.setting)
 
 #-----------------------------------------------------------------------------#
 
-	def change_embedding_model(self, model_name):
+	def change_embedding_model(self, database, model_name):
 
 		if len(model_name) > 0:
 
-			self.setting['embedding_model']['selected'] = model_name
+			self.setting["database"][database]['embedding_model'] = model_name
 
 			self.generate_setting(self.setting)
 
@@ -150,7 +150,6 @@ class SettingController():
 				else:
 					print(f"{folder_path}已存在")
 
-			
 #-----------------------------------------------------------------------------#
 
 	def remove_database(self, database):
@@ -171,3 +170,4 @@ class SettingController():
 			else:
 				print(f"{folder_path}不存在")
 			"""
+			

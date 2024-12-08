@@ -23,11 +23,6 @@ list_embedding_model = ollama_info[ollama_info["family"] == "bert"]["name"].toli
 def change_llm_model():
     SettingController.change_llm_model(st.session_state.llm_model)
 
-#-----------------------------------------------------------------------------#
-
-def change_embedding_model():
-    SettingController.change_embedding_model(st.session_state.embedding_model)
-
 #=============================================================================#
 
 st.set_page_config(layout="wide")
