@@ -6,56 +6,65 @@ from marker.logger import configure_logging
 from marker.pdf.utils import find_filetype
 from marker.models import load_all_models
 from marker.settings import settings
+
 from tqdm import tqdm
 
 import torch.multiprocessing as mp
-import pypdfium2 # Needs to be at the top to avoid warnings
+import pypdfium2
 import traceback
 import math
 import json
 import sys
 import os
 
+#=============================================================================#
+
 os.environ["PYTORCH_ENABLE_MPS_FALLBACK"] = "1" # For some reason, transformers decided to use .isin for a simple op, which is not supported on MPS
 os.environ["IN_STREAMLIT"] = "true" # Avoid multiprocessing inside surya
 os.environ["PDFTEXT_CPU_WORKERS"] = "1" # Avoid multiprocessing inside pdftext
 
+#=============================================================================#
 
 configure_logging()
 
+#=============================================================================#
 
 def remove_temp_PDF(folder_path):
-    # 檢查資料夾是否存在
+    
     if not os.path.exists(folder_path):
         print(f"資料夾 {folder_path} 不存在。")
         return
     
-    # 列出資料夾內的所有檔案
     for filename in os.listdir(folder_path):
         file_path = os.path.join(folder_path, filename)
         try:
-            # 檢查是否為 .pdf 檔案
             if os.path.isfile(file_path) and filename.lower().endswith('.pdf'):
-                os.remove(file_path)  # 刪除檔案
+                os.remove(file_path)
                 print(f"已刪除檔案: {file_path}")
         except Exception as e:
             print(f"無法刪除檔案 {file_path}，錯誤: {e}")
 
+#-----------------------------------------------------------------------------#
 
 def worker_init(shared_model):
+
     if shared_model is None:
         shared_model = load_all_models()
 
     global model_refs
     model_refs = shared_model
 
+#-----------------------------------------------------------------------------#
 
 def worker_exit():
+
     global model_refs
     del model_refs
 
+#-----------------------------------------------------------------------------#
 
 def process_single_pdf(args):
+
     filepath, out_folder, metadata, min_length = args
 
     fname = os.path.basename(filepath)
@@ -84,20 +93,23 @@ def process_single_pdf(args):
         print(f"Error converting {filepath}: {e}")
         print(traceback.format_exc())
 
+#-----------------------------------------------------------------------------#
 
 def PDF_to_MD(in_folder, out_folder, chunk_idx=0, num_chunks=1, max_num=None, workers=5, metadata_file=None, min_length=None):
 
-    in_folder = os.path.abspath(in_folder)
+    in_folder  = os.path.abspath(in_folder)
     out_folder = os.path.abspath(out_folder)
+
     files = [os.path.join(in_folder, f) for f in os.listdir(in_folder)]
     files = [f for f in files if os.path.isfile(f)]
+
     os.makedirs(out_folder, exist_ok=True)
 
     # Handle chunks if we're processing in parallel
     # Ensure we get all files into a chunk
-    chunk_size = math.ceil(len(files) / num_chunks)
-    start_idx = chunk_idx * chunk_size
-    end_idx = start_idx + chunk_size
+    chunk_size       = math.ceil(len(files) / num_chunks)
+    start_idx        = chunk_idx * chunk_size
+    end_idx          = start_idx + chunk_size
     files_to_convert = files[start_idx:end_idx]
 
     # Limit files converted if needed
@@ -130,6 +142,7 @@ def PDF_to_MD(in_folder, out_folder, chunk_idx=0, num_chunks=1, max_num=None, wo
             model.share_memory()
 
     print(f"Converting {len(files_to_convert)} pdfs in chunk {chunk_idx + 1}/{num_chunks} with {total_processes} processes, and storing in {out_folder}")
+    
     task_args = [(f, out_folder, metadata.get(os.path.basename(f)), min_length) for f in files_to_convert]
 
     with mp.Pool(processes=total_processes, initializer=worker_init, initargs=(model_lst,)) as pool:
@@ -140,6 +153,7 @@ def PDF_to_MD(in_folder, out_folder, chunk_idx=0, num_chunks=1, max_num=None, wo
     # Delete all CUDA tensors
     del model_lst
 
+#=============================================================================#
 
 if __name__ == "__main__":
 
