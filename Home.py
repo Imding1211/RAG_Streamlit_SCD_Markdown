@@ -17,8 +17,12 @@ QueryController    = QueryController()
 
 #=============================================================================#
 
-def load_PDF(PDF_name):
-    with open(f"storage/{database_name}/save_PDF/{PDF_name}", "rb") as PDF_file:
+def load_PDF(PDF_info):
+
+    database = PDF_info.split(":")[0]
+    PDF_name = PDF_info.split(":")[1]
+
+    with open(f"storage/{database}/save_PDF/{PDF_name}", "rb") as PDF_file:
         PDF = PDF_file.read()
 
     return PDF
@@ -66,14 +70,15 @@ for message in st.session_state.messages[1:]:
             st.markdown(message["content"])
 
             if len(message["source"]):
-                st.caption("參考資料來源: " + ", ".join(message["source"]))
+                st.caption("參考資料來源: " + ", ".join([source_name.split(":")[1] for source_name in message["source"]]))
 
                 st.divider()
 
                 st.caption("參考資料下載:")
                 download_buttons = []
-                for index, source in enumerate(message["source"]):
-                    download_buttons.append(st.download_button(key=uuid.uuid4(), label=source, data=load_PDF(source), file_name=source, mime='application/octet-stream'))
+                for source in message["source"]:
+                    source_name = source.split(":")[1]
+                    download_buttons.append(st.download_button(key=uuid.uuid4(), label=source_name, data=load_PDF(source), file_name=source_name, mime='application/octet-stream'))
 
 #-----------------------------------------------------------------------------#
 
@@ -85,6 +90,8 @@ if question := st.chat_input("輸入問題:"):
 #-----------------------------------------------------------------------------#
 
     results, sources = QueryController.generate_results(question)
+
+    sources = [f"{database_name}:{source}" for source in sources]
 
     prompt, preview_text = QueryController.generate_prompt(question, results)
 
@@ -98,14 +105,15 @@ if question := st.chat_input("輸入問題:"):
         response = st.write_stream(QueryController.generate_response(st.session_state.memory))
 
         if len(sources):
-            st.caption("參考資料來源: " + ", ".join(sources))
+            st.caption("參考資料來源: " + ", ".join([source_name.split(":")[1] for source_name in source]))
 
             st.divider()
 
             st.caption("參考資料下載:")
             download_buttons = []
-            for index, source in enumerate(sources):
-                download_buttons.append(st.download_button(key=uuid.uuid4(), label=source, data=load_PDF(source), file_name=source, mime='application/octet-stream'))
+            for source in sources:
+                source_name = source.split(":")[1]
+                download_buttons.append(st.download_button(key=uuid.uuid4(), label=source_name, data=load_PDF(source), file_name=source_name, mime='application/octet-stream'))
 
     st.session_state.memory[-1]["content"] = question
 
