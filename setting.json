@@ -5,9 +5,9 @@
         "query_num": 2
     },
     "database": {
-        "selected": "default",
+        "selected": "Demo",
         "default": {
-            "create_time": "2024/12/09 09:50:27",
+            "create_time": "2024/12/09 11:56:55",
             "path": "storage/default/database",
             "embedding_model": "all-minilm:latest",
             "remarks": ""

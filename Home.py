@@ -105,7 +105,7 @@ if question := st.chat_input("輸入問題:"):
         response = st.write_stream(QueryController.generate_response(st.session_state.memory))
 
         if len(sources):
-            st.caption("參考資料來源: " + ", ".join([source_name.split(":")[1] for source_name in source]))
+            st.caption("參考資料來源: " + ", ".join([source_name.split(":")[1] for source_name in sources]))
 
             st.divider()
 
