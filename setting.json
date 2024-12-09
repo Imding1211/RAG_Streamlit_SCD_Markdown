@@ -5,7 +5,7 @@
         "query_num": 2
     },
     "database": {
-        "selected": "Demo",
+        "selected": "default",
         "default": {
             "create_time": "2024/12/09 11:56:55",
             "path": "storage/default/database",
