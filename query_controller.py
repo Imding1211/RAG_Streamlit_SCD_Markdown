@@ -13,14 +13,14 @@ class QueryController():
 
     def __init__(self):
 
+        self.DatabaseController = DatabaseController()
+        self.database           = self.DatabaseController.database
+
         self.SettingController = SettingController()
         self.llm_model         = self.SettingController.setting['paramater']['llm_model']
         self.query_num         = self.SettingController.setting['paramater']['query_num']
         self.prompt_templt     = self.SettingController.setting['paramater']['prompt']
         self.base_url          = self.SettingController.setting['server']['base_url']
-
-        self.DatabaseController = DatabaseController()
-        self.database           = self.DatabaseController.database
 
 #-----------------------------------------------------------------------------#
 

@@ -4,11 +4,14 @@ from setting_controller import SettingController
 
 import streamlit as st
 import subprocess
-import tempfile
 import sys
-import os
 
 #=============================================================================#
+
+DatabaseController       = DatabaseController()
+ollama_info              = DatabaseController.ollama_to_dataframe()
+list_embedding_model     = ollama_info[ollama_info["family"] == "bert"]["name"].tolist()
+embedding_model_disabled = True if len(DatabaseController.calculate_existing_ids()) != 0 else False
 
 SettingController    = SettingController()
 list_database        = list(SettingController.setting['database'].keys())[1:]
@@ -17,11 +20,6 @@ selected_embedding   = SettingController.setting['database'][selected_database][
 create_time_database = SettingController.setting['database'][selected_database]['create_time']
 remarks_database     = SettingController.setting['database'][selected_database]['remarks']
 index_database       = list_database.index(selected_database)
-
-DatabaseController       = DatabaseController()
-ollama_info              = DatabaseController.ollama_to_dataframe()
-list_embedding_model     = ollama_info[ollama_info["family"] == "bert"]["name"].tolist()
-embedding_model_disabled = True if len(DatabaseController.calculate_existing_ids()) != 0 else False
 
 #=============================================================================#
 
@@ -277,18 +275,6 @@ files = st.file_uploader(
 
 PDF_col1, PDF_col2 = st.columns([9,1])
 
-if PDF_col2.button("更新", key=3):
-
-    with database_status.status('資料處理中...', expanded=True) as update_status:
-
-        DatabaseController.save_PDF(files)
-
-        subprocess.run([f"{sys.executable}", "convert_controller.py", selected_database])
-
-        DatabaseController.add_database(files)
-
-        update_status.update(label="資料處理完成!", state="complete", expanded=False)
-
 #-----------------------------------------------------------------------------#
 
 df = DatabaseController.database_to_dataframes()
@@ -314,19 +300,20 @@ df_result = df.merge(df_selected, on=['source', 'start_date'])
 
 #-----------------------------------------------------------------------------#
 
-st.divider()
+if PDF_col2.button("更新", key=3):
 
-#-----------------------------------------------------------------------------#
+    with database_status.status('資料處理中...', expanded=True) as update_status:
 
-st.header("資料預覽")
+        DatabaseController.save_PDF(files)
 
-st.dataframe(
-    df_result[['source', 'documents', 'start_date', 'end_date', 'version', 'latest']],
-    column_config=selected_config,
-    use_container_width=True, 
-    hide_index=True
-    )
+        subprocess.run([f"{sys.executable}", "convert_controller.py", selected_database])
 
+        DatabaseController.add_database(files)
+
+        update_status.update(label="資料處理完成!", state="complete", expanded=False)
+
+    st.rerun()
+        
 if PDF_col2.button('刪除', key=4):
 
     with database_status.status('資料刪除中...', expanded=True) as remove_status:
@@ -341,4 +328,22 @@ if PDF_col2.button('刪除', key=4):
         remove_status.update(label="資料刪除完成!", state="complete", expanded=False)
 
     st.rerun()
+
+#-----------------------------------------------------------------------------#
+
+st.divider()
+
+#-----------------------------------------------------------------------------#
+
+st.header("資料預覽")
+
+st.dataframe(
+    df_result[['source', 'documents', 'start_date', 'end_date', 'version', 'latest']],
+    column_config=selected_config,
+    use_container_width=True, 
+    hide_index=True
+    )
+
+
+
 

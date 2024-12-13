@@ -2,21 +2,17 @@
 from database_controller import DatabaseController
 from setting_controller import SettingController
 
-from ollama import Client
-
 import streamlit as st
-import pandas as pd
-import humanize
 
 #=============================================================================#
-
-SettingController  = SettingController()
-selected_llm       = SettingController.setting['paramater']['llm_model']
 
 DatabaseController   = DatabaseController()
 ollama_info          = DatabaseController.ollama_to_dataframe()
 list_llm_model       = ollama_info[ollama_info["family"] != "bert"]["name"].tolist()
 list_embedding_model = ollama_info[ollama_info["family"] == "bert"]["name"].tolist()
+
+SettingController  = SettingController()
+selected_llm       = SettingController.setting['paramater']['llm_model']
 
 #=============================================================================#
 
@@ -85,7 +81,6 @@ st.header("語言模型")
 #-----------------------------------------------------------------------------#
 
 llm_warning       = st.empty()
-embedding_warning = st.empty()
 
 #-----------------------------------------------------------------------------#
 

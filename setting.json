@@ -1,6 +1,6 @@
 {
     "paramater": {
-        "llm_model": "llama3.2-vision:latest",
+        "llm_model": "gemma2:2b",
         "prompt": "{context}\n\n---\n\n根據以上資料用繁體中文回答問題: {question}\n",
         "query_num": 2
     },

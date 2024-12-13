@@ -8,12 +8,13 @@ import uuid
 
 #=============================================================================#
 
+DatabaseController = DatabaseController()
+
 SettingController  = SettingController()
 selected_query_num = SettingController.setting['paramater']['query_num']
 database_name      = SettingController.setting['database']['selected']
 
-DatabaseController = DatabaseController()
-QueryController    = QueryController()
+QueryController = QueryController()
 
 #=============================================================================#
 
