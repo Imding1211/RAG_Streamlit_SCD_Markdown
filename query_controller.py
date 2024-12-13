@@ -17,10 +17,8 @@ class QueryController():
         self.database           = self.DatabaseController.database
 
         self.SettingController = SettingController()
-        self.llm_model         = self.SettingController.setting['paramater']['llm_model']
         self.query_num         = self.SettingController.setting['paramater']['query_num']
         self.prompt_templt     = self.SettingController.setting['paramater']['prompt']
-        self.base_url          = self.SettingController.setting['server']['base_url']
 
 #-----------------------------------------------------------------------------#
 
@@ -60,12 +58,3 @@ class QueryController():
                 preview_text[doc.metadata['title']] = doc.metadata['raw_text']
 
         return prompt, preview_text
-
-#-----------------------------------------------------------------------------#
-
-    def generate_response(self, messages: Dict) -> Generator:
-        
-        llm = OllamaLLM(model=self.llm_model, base_url=self.base_url)
-        
-        for chunk in llm.stream(messages):
-            yield chunk

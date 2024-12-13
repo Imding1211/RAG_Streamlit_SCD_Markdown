@@ -1,6 +1,7 @@
 
 from database_controller import DatabaseController
 from setting_controller import SettingController
+from model_controller import ModelController
 
 import streamlit as st
 import subprocess
@@ -9,8 +10,6 @@ import sys
 #=============================================================================#
 
 DatabaseController       = DatabaseController()
-ollama_info              = DatabaseController.ollama_to_dataframe()
-list_embedding_model     = ollama_info[ollama_info["family"] == "bert"]["name"].tolist()
 embedding_model_disabled = True if len(DatabaseController.calculate_existing_ids()) != 0 else False
 
 SettingController    = SettingController()
@@ -20,6 +19,10 @@ selected_embedding   = SettingController.setting['database'][selected_database][
 create_time_database = SettingController.setting['database'][selected_database]['create_time']
 remarks_database     = SettingController.setting['database'][selected_database]['remarks']
 index_database       = list_database.index(selected_database)
+
+ModelController      = ModelController()
+ollama_info          = ModelController.ollama_to_dataframe()
+list_embedding_model = ollama_info[ollama_info["family"] == "bert"]["name"].tolist()
 
 #=============================================================================#
 

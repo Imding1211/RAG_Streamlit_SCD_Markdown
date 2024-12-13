@@ -2,6 +2,7 @@
 from database_controller import DatabaseController
 from setting_controller import SettingController
 from query_controller import QueryController
+from model_controller import ModelController
 
 import streamlit as st
 import uuid
@@ -15,6 +16,8 @@ selected_query_num = SettingController.setting['paramater']['query_num']
 database_name      = SettingController.setting['database']['selected']
 
 QueryController = QueryController()
+
+ModelController = ModelController()
 
 #=============================================================================#
 
@@ -103,7 +106,7 @@ if question := st.chat_input("輸入問題:"):
 #-----------------------------------------------------------------------------#
 
     with chat_container.chat_message("assistant", avatar="🤖"):
-        response = st.write_stream(QueryController.generate_response(st.session_state.memory))
+        response = st.write_stream(ModelController.generate_response(st.session_state.memory))
 
         if len(sources):
             st.caption("參考資料來源: " + ", ".join([source_name.split(":")[1] for source_name in sources]))
