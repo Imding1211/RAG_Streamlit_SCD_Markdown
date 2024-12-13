@@ -24,6 +24,7 @@ import base64
 import uuid
 import json
 import re
+import os
 
 #=============================================================================#
 
@@ -119,6 +120,8 @@ class DatabaseController():
         markdown = self.load_markdown(PDF_name, current_version)
 
         PDF_info = self.markdown_to_section(PDF_name, markdown, current_version)
+
+        self.save_json(PDF_name, PDF_info, current_version)
 
         PDF_info = self.create_propositions(PDF_info)
 
@@ -227,7 +230,7 @@ class DatabaseController():
 
         meta = self.load_meta(PDF_name, current_version)
 
-        headers = ["#"*hd["level"] + " " + hd["title"] for hd in meta["computed_toc"]]
+        headers = ["#"*hd["level"] + " " + hd["title"] for hd in meta["computed_toc"] if hd["level"] <= 2]
 
         PDF_info = {
             "PDF_name" : PDF_name,
@@ -504,6 +507,23 @@ class DatabaseController():
 
             shutil.move(temp_pdf_name, save_path+save_pdf_name)
             shutil.copy(save_path+save_pdf_name, temp_path)
+
+#-----------------------------------------------------------------------------#
+
+    def remove_temp_PDF(self, folder_path):
+        
+        if not os.path.exists(folder_path):
+            print(f"資料夾 {folder_path} 不存在。")
+            return
+        
+        for filename in os.listdir(folder_path):
+            file_path = os.path.join(folder_path, filename)
+            try:
+                if os.path.isfile(file_path) and filename.lower().endswith('.pdf'):
+                    os.remove(file_path)
+                    print(f"已刪除檔案: {file_path}")
+            except Exception as e:
+                print(f"無法刪除檔案 {file_path}，錯誤: {e}")
 
 #-----------------------------------------------------------------------------#
 

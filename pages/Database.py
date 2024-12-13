@@ -6,6 +6,7 @@ from model_controller import ModelController
 import streamlit as st
 import subprocess
 import sys
+import os
 
 #=============================================================================#
 
@@ -57,6 +58,8 @@ def remove_database():
         st.rerun()
 
 #=============================================================================#
+
+working_dir = os.getcwd()
 
 st.set_page_config(layout="wide")
 
@@ -307,9 +310,15 @@ if PDF_col2.button("更新", key=3):
 
     with database_status.status('資料處理中...', expanded=True) as update_status:
 
+        print(f'{working_dir}/temp_PDF')
+
+        print(f'{working_dir}/storage/{selected_database}/output_MD')
+
         DatabaseController.save_PDF(files)
 
-        subprocess.run([f"{sys.executable}", "convert_controller.py", selected_database])
+        subprocess.run(["marker", f'{working_dir}/temp_PDF', f'{working_dir}/storage/{selected_database}/output_MD'])
+
+        DatabaseController.remove_temp_PDF("temp_PDF")
 
         DatabaseController.add_database(files)
 
@@ -346,7 +355,3 @@ st.dataframe(
     use_container_width=True, 
     hide_index=True
     )
-
-
-
-
