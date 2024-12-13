@@ -7,7 +7,7 @@
     "database": {
         "selected": "default",
         "default": {
-            "create_time": "2024/12/13 16:47:11",
+            "create_time": "2024/12/13 17:37:34",
             "path": "storage/default/database",
             "embedding_model": "all-minilm:latest",
             "remarks": "Default database."

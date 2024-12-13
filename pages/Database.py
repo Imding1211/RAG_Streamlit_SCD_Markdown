@@ -316,7 +316,7 @@ if PDF_col2.button("更新", key=3):
 
         DatabaseController.save_PDF(files)
 
-        subprocess.run(["marker", f'{working_dir}/temp_PDF', f'{working_dir}/storage/{selected_database}/output_MD'])
+        subprocess.run(["marker", "--workers", "2", f"{working_dir}/temp_PDF", f"{working_dir}/storage/{selected_database}/output_MD"])
 
         DatabaseController.remove_temp_PDF("temp_PDF")
 
