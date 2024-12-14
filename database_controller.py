@@ -121,11 +121,7 @@ class DatabaseController():
 
         PDF_info = self.markdown_to_section(PDF_name, markdown, current_version)
 
-        self.save_json(PDF_name, PDF_info, current_version)
-
-        PDF_info = self.create_propositions(PDF_info)
-
-        self.save_json(PDF_name, PDF_info, current_version)
+        PDF_info = self.create_propositions(PDF_name, PDF_info, current_version)
 
         #PDF_info = self.load_json(PDF_name, current_version)
         
@@ -309,11 +305,15 @@ class DatabaseController():
             PDF_info["sections"].append(section_info)
             section_id += 1
 
+        self.save_json(PDF_name, PDF_info, current_version)
+
         return PDF_info
 
 #-----------------------------------------------------------------------------#
 
-    def create_propositions(self, PDF_info):
+    def create_propositions(self, PDF_name, PDF_info, current_version):
+
+        #decompose_prompt = self.load_decompose_prompt("decompose_prompt.json")
 
         text_decompose_prompt  = [
             ChatMessage(
@@ -362,7 +362,7 @@ class DatabaseController():
                         '它還能通過調節身體的自然時鐘來改善睡眠品質。',
                         '無論是快走、瑜伽課還是健身房運動，甚至只需20到30分鐘，也能帶來顯著的效果。',
                         '養成晨間運動的習慣，將讓你體驗到更有成效且更健康的生活方式。',
-                        '這是一個小小的改變，卻能帶來顯著且持久的益處。']"""),
+                        '這是一個小小的改變，卻能帶來顯著且持久的益處']"""),
             ChatMessage(
                 role=MessageRole.USER,
                 content="""
@@ -450,7 +450,7 @@ class DatabaseController():
 
                 for index, proposition in enumerate(text_response_json["propositions"], 1):
                     proposition = re.sub(r"\s+", "", proposition)
-                    if len(proposition):
+                    if len(proposition) and proposition not in ['晨間運動的好處', '開始一天時進行運動，能對你的身體與心理健康產生深遠的影響。', '參與晨間運動可以提升你的精力、改善心情，並提高一天的專注力。', '身體活動會刺激內啡肽的釋放，減輕壓力並促進幸福感。', '此外，早晨運動有助於建立規律的生活習慣，使保持持續性變得更容易。', '它還能通過調節身體的自然時鐘來改善睡眠品質。', '無論是快走、瑜伽課還是健身房運動，甚至只需20到30分鐘，也能帶來顯著的效果。', '養成晨間運動的習慣，將讓你體驗到更有成效且更健康的生活方式。', '這是一個小小的改變，卻能帶來顯著且持久的益處']:
                         info["propositions"].append(proposition)
                         print(proposition)
 
@@ -462,6 +462,8 @@ class DatabaseController():
                 print(response.message.content)
 
                 print("Formatted output failed.")
+
+        self.save_json(PDF_name, PDF_info, current_version)
 
         return PDF_info
 
@@ -578,3 +580,12 @@ class DatabaseController():
             markdown = file.read()
         
         return markdown
+
+#-----------------------------------------------------------------------------#
+
+    def load_decompose_prompt(self, file_name):
+
+        with open(file_name, 'r', encoding='utf-8') as file:
+            decompose_prompt = json.load(file)
+
+        return decompose_prompt
