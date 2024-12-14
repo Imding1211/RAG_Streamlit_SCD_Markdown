@@ -11,18 +11,6 @@
             "path": "storage/default/database",
             "embedding_model": "shaw/dmeta-embedding-zh:latest",
             "remarks": ""
-        },
-        "Document": {
-            "create_time": "2024/12/14 00:24:57",
-            "path": "storage/Document/database",
-            "embedding_model": "shaw/dmeta-embedding-zh:latest",
-            "remarks": ""
-        },
-        "SOP": {
-            "create_time": "2024/12/14 11:37:08",
-            "path": "storage/SOP/database",
-            "embedding_model": "shaw/dmeta-embedding-zh:latest",
-            "remarks": ""
         }
     },
     "text_splitter": {
