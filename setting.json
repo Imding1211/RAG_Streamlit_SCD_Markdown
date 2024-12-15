@@ -1,11 +1,11 @@
 {
     "paramater": {
         "llm_model": "llama3.2-vision:latest",
-        "prompt": "{context}\n\n---\n\n根據以上資料用繁體中文回答問題: {question}\n",
+        "prompt": "{context}\n\n---\n\n根據以上資料用繁體中文回答問題: {question}\n請使用知識庫內容回答\n知識庫內容搜尋不到，請回答不知道\n",
         "query_num": 2
     },
     "database": {
-        "selected": "Document",
+        "selected": "default",
         "default": {
             "create_time": "2024/12/14 11:36:40",
             "path": "storage/default/database",

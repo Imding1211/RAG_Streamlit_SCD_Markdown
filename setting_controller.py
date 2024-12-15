@@ -161,13 +161,14 @@ class SettingController():
 
 			self.generate_setting(self.setting)
 
-			"""
-			folder_path = f"storage/{database}"
+			storage_path = f"storage/{database}/"
 
-			if os.path.exists(folder_path):
-				shutil.rmtree(folder_path)
-				print(f"{folder_path}已移除")
-			else:
-				print(f"{folder_path}不存在")
-			"""
-			
+			try:
+			    shutil.rmtree(storage_path)
+			    print(f"{database}資料庫已成功移除。")
+			except FileNotFoundError:
+			    print(f"{database}資料庫不存在。")
+			except PermissionError:
+			    print(f"沒有權限移除{database}資料庫。")
+			except Exception as e:
+			    print(f"移除{database}資料庫時發生錯誤: {e}")

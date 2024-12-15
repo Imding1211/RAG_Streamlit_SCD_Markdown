@@ -15,6 +15,7 @@ from ollama import Client
 from pathlib import Path
 
 import pandas as pd
+import chromadb
 import tempfile
 import datetime
 import humanize
@@ -31,6 +32,8 @@ import os
 class DatabaseController():
 
     def __init__(self):
+
+        chromadb.api.client.SharedSystemClient.clear_system_cache()
 
         self.SettingController = SettingController()
         self.chunk_size        = self.SettingController.setting['text_splitter']['chunk_size']
