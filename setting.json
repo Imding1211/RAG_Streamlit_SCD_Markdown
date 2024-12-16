@@ -1,16 +1,16 @@
 {
     "paramater": {
         "llm_model": "llama3.2-vision:latest",
-        "prompt": "{context}\n\n---\n\n根據以上資料用繁體中文回答問題: {question}\n請使用知識庫內容回答\n知識庫內容搜尋不到，請回答不知道\n",
+        "prompt": "{context}\n\n---\n\n根據以上資料用繁體中文回答問題: {question}\n",
         "query_num": 2
     },
     "database": {
         "selected": "default",
         "default": {
-            "create_time": "2024/12/14 11:36:40",
+            "create_time": "2024/12/16 11:12:53",
             "path": "storage/default/database",
-            "embedding_model": "shaw/dmeta-embedding-zh:latest",
-            "remarks": ""
+            "embedding_model": "all-minilm:latest",
+            "remarks": "Default database."
         }
     },
     "text_splitter": {

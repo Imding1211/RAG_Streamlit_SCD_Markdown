@@ -122,6 +122,16 @@ class SettingController():
 
 #-----------------------------------------------------------------------------#
 
+	def change_remarks(self, database, remarks):
+
+		if len(remarks) > 0:
+
+			self.setting["database"][database]['remarks'] = remarks
+
+			self.generate_setting(self.setting)
+		
+#-----------------------------------------------------------------------------#
+
 	def add_database(self, database, model, remarks):
 
 		if len(database) > 0:
@@ -166,9 +176,12 @@ class SettingController():
 			try:
 			    shutil.rmtree(storage_path)
 			    print(f"{database}資料庫已成功移除。")
+
 			except FileNotFoundError:
 			    print(f"{database}資料庫不存在。")
+
 			except PermissionError:
 			    print(f"沒有權限移除{database}資料庫。")
+
 			except Exception as e:
 			    print(f"移除{database}資料庫時發生錯誤: {e}")

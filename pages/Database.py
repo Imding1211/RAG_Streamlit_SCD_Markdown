@@ -37,13 +37,52 @@ def change_embedding_model():
 
 #-----------------------------------------------------------------------------#
 
+@st.dialog("編輯資料庫", width="large")
+def edit_database():
+
+    remarks = st.text_area("資料庫備注", remarks_database)
+
+    if selected_embedding in list_embedding_model:
+        index_embedding = list_embedding_model.index(selected_embedding)
+    else:
+        embedding_warning.error(f'{selected_embedding}嵌入模型不存在，請重新選擇。', icon="🚨")
+        index_embedding = None
+
+    st.selectbox("請選擇嵌入模型:", 
+        list_embedding_model, 
+        on_change=change_embedding_model, 
+        key='embedding_model', 
+        index=index_embedding,
+        disabled=embedding_model_disabled,
+        placeholder='嵌入模型不存在，請重新選擇。'
+        )
+
+    embedding_warning = st.empty()
+
+    if embedding_model_disabled:
+        embedding_warning.warning('資料庫有資料時無法更換嵌入模型。', icon="⚠️")
+
+    st.dataframe(
+        ollama_info[ollama_info["family"] == "bert"],
+        column_config=info_config,
+        use_container_width=True,
+        hide_index=True
+        )
+
+    if st.button("確認", key=6):
+        SettingController.change_embedding_model(selected_database, st.session_state.embedding_model)
+        SettingController.change_remarks(selected_database, remarks)
+        st.rerun()
+
+#-----------------------------------------------------------------------------#
+
 @st.dialog("新增資料庫")
 def add_database():
     database = st.text_input("輸入資料庫名稱:")
     model    = st.selectbox("選擇嵌入模型:", list_embedding_model, index=None, placeholder="請選擇嵌入模型")
     remarks  = st.text_area("資料庫備注")
 
-    if st.button("確認", key=5):
+    if st.button("確認", key=7):
         SettingController.add_database(database, model, remarks)
         st.rerun()
 
@@ -53,7 +92,7 @@ def add_database():
 def remove_database():
     database = st.selectbox("選擇資料庫:", list_database, index=None, placeholder="請選擇資料庫")
 
-    if st.button("確認", key=6):
+    if st.button("確認", key=8):
         SettingController.remove_database(database)
         st.rerun()
 
@@ -220,44 +259,19 @@ st.selectbox("請選擇要使用的資料庫：",
     placeholder='資料庫不存在，請重新選擇。'
     )
 
-st.write(f"建立時間：{create_time_database}")
-st.write(f"資料庫備註：{remarks_database}")
-
-#-----------------------------------------------------------------------------#
-
-if selected_embedding in list_embedding_model:
-    index_embedding = list_embedding_model.index(selected_embedding)
-else:
-    embedding_warning.error(f'{selected_embedding}嵌入模型不存在，請重新選擇。', icon="🚨")
-    index_embedding = None
-
-st.selectbox("請選擇嵌入模型:", 
-    list_embedding_model, 
-    on_change=change_embedding_model, 
-    key='embedding_model', 
-    index=index_embedding,
-    disabled=embedding_model_disabled,
-    placeholder='嵌入模型不存在，請重新選擇。'
-    )
-
-embedding_warning = st.empty()
-
-if embedding_model_disabled:
-    embedding_warning.warning('資料庫有資料時無法更換嵌入模型。', icon="⚠️")
-
 db_col1, db_col2 = st.columns([9,1])
 
-db_col1.dataframe(
-    ollama_info[ollama_info["family"] == "bert"],
-    column_config=info_config,
-    use_container_width=True,
-    hide_index=True
-    )
+db_col1.write(f"建立時間：{create_time_database}")
+db_col1.write(f"嵌入模型：{selected_embedding}")
+db_col1.write(f"資料庫備註：{remarks_database}")
 
-if db_col2.button("新增", key=1):
+if db_col2.button("編輯", key=1):
+    edit_database()
+
+if db_col2.button("新增", key=2):
     add_database()
 
-if db_col2.button("刪除", key=2):
+if db_col2.button("刪除", key=3):
     remove_database()
 
 #-----------------------------------------------------------------------------#
@@ -306,7 +320,7 @@ df_result = df.merge(df_selected, on=['source', 'start_date'])
 
 #-----------------------------------------------------------------------------#
 
-if PDF_col2.button("更新", key=3):
+if PDF_col2.button("新增", key=4):
 
     with database_status.status('資料處理中...', expanded=True) as update_status:
 
@@ -317,7 +331,7 @@ if PDF_col2.button("更新", key=3):
         DatabaseController.save_PDF(files)
 
         #subprocess.run(["marker", "--workers", "2", f"{working_dir}/temp_PDF", f"{working_dir}/storage/{selected_database}/output_MD"])
-        #subprocess.run([f"{sys.executable}", "convert_controller.py", selected_database])
+        subprocess.run([f"{sys.executable}", "convert_controller.py", selected_database])
 
         DatabaseController.remove_temp_PDF("temp_PDF")
 
@@ -327,7 +341,7 @@ if PDF_col2.button("更新", key=3):
 
     st.rerun()
         
-if PDF_col2.button('刪除', key=4):
+if PDF_col2.button('刪除', key=5):
 
     with database_status.status('資料刪除中...', expanded=True) as remove_status:
 
