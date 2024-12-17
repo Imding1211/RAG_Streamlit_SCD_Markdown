@@ -128,28 +128,7 @@ class DatabaseController():
 
         #PDF_info = self.load_json(PDF_name, current_version)
         
-        for info in PDF_info["sections"]:
-
-            metadata = {
-                "title"         : info["title"],
-                "raw_text"      : info["raw_text"],
-                "image_text"    : info["image_text"],
-                "source"        : pdf.stream.name, 
-                "size"          : pdf.stream.size,
-                "chunk_size"    : "",
-                "chunk_overlap" : "",
-                "start_date"    : start_date,
-                "end_date"      : end_date,
-                "version"       : current_version + 1,
-                "latest"        : True
-            }
-
-            documents = self.section_to_documents(info, metadata)
-
-            ids = [str(uuid.uuid4()) for _ in range(len(documents))]
-
-            if len(documents):
-                self.database.add_documents(documents, ids=ids)
+        self.info_to_documents(PDF_info, pdf, start_date, end_date, current_version)
 
         print("Done!!")
 
@@ -188,12 +167,6 @@ class DatabaseController():
 
 #-----------------------------------------------------------------------------#
 
-    def clear_database(self, delete_ids):
-        if delete_ids:
-            self.database.delete(ids=delete_ids)
-
-#-----------------------------------------------------------------------------#
-
     def add_database(self, files):
 
         start_date = self.time_now.strftime('%Y/%m/%d %H:%M:%S')
@@ -209,6 +182,12 @@ class DatabaseController():
                 self.update_chroma(pdf.stream.name, start_date, False, current_version)
 
             self.add_chroma(pdf, start_date, end_date, current_version)
+
+#-----------------------------------------------------------------------------#
+
+    def clear_database(self, delete_ids):
+        if delete_ids:
+            self.database.delete(ids=delete_ids)
 
 #-----------------------------------------------------------------------------#
 
@@ -469,6 +448,33 @@ class DatabaseController():
         self.save_json(PDF_name, PDF_info, current_version)
 
         return PDF_info
+
+#-----------------------------------------------------------------------------#
+
+    def info_to_documents(self, PDF_info, pdf, start_date, end_date, current_version):
+
+        for info in PDF_info["sections"]:
+
+            metadata = {
+                "title"         : info["title"],
+                "raw_text"      : info["raw_text"],
+                "image_text"    : info["image_text"],
+                "source"        : pdf.stream.name, 
+                "size"          : pdf.stream.size,
+                "chunk_size"    : "",
+                "chunk_overlap" : "",
+                "start_date"    : start_date,
+                "end_date"      : end_date,
+                "version"       : current_version + 1,
+                "latest"        : True
+            }
+
+            documents = self.section_to_documents(info, metadata)
+
+            ids = [str(uuid.uuid4()) for _ in range(len(documents))]
+
+            if len(documents):
+                self.database.add_documents(documents, ids=ids)
 
 #-----------------------------------------------------------------------------#
 
