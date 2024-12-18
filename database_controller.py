@@ -67,6 +67,16 @@ class DatabaseController():
             json_mode=True
             )
 
+        self.remove_propositions_list = ['晨間運動的好處。',
+            '開始一天時進行運動，能對你的身體與心理健康產生深遠的影響。', 
+            '參與晨間運動可以提升你的精力、改善心情，並提高一天的專注力。', 
+            '身體活動會刺激內啡肽的釋放，減輕壓力並促進幸福感。', 
+            '此外，早晨運動有助於建立規律的生活習慣，使保持持續性變得更容易。', 
+            '它還能通過調節身體的自然時鐘來改善睡眠品質。', 
+            '無論是快走、瑜伽課還是健身房運動，甚至只需20到30分鐘，也能帶來顯著的效果。', 
+            '養成晨間運動的習慣，將讓你體驗到更有成效且更健康的生活方式。', 
+            '這是一個小小的改變，卻能帶來顯著且持久的益處。']
+
 #-----------------------------------------------------------------------------#
 
     def calculate_existing_ids(self):
@@ -336,7 +346,7 @@ class DatabaseController():
                 role=MessageRole.ASSISTANT ,
                 content="""
                     propositions=[
-                        '晨間運動的好處',
+                        '晨間運動的好處。',
                         '開始一天時進行運動，能對你的身體與心理健康產生深遠的影響。',
                         '參與晨間運動可以提升你的精力、改善心情，並提高一天的專注力。',
                         '身體活動會刺激內啡肽的釋放，減輕壓力並促進幸福感。',
@@ -344,7 +354,7 @@ class DatabaseController():
                         '它還能通過調節身體的自然時鐘來改善睡眠品質。',
                         '無論是快走、瑜伽課還是健身房運動，甚至只需20到30分鐘，也能帶來顯著的效果。',
                         '養成晨間運動的習慣，將讓你體驗到更有成效且更健康的生活方式。',
-                        '這是一個小小的改變，卻能帶來顯著且持久的益處']"""),
+                        '這是一個小小的改變，卻能帶來顯著且持久的益處。']"""),
             ChatMessage(
                 role=MessageRole.USER,
                 content="""
@@ -432,7 +442,7 @@ class DatabaseController():
 
                 for index, proposition in enumerate(text_response_json["propositions"], 1):
                     proposition = re.sub(r"\s+", "", proposition)
-                    if len(proposition) and proposition not in ['晨間運動的好處', '開始一天時進行運動，能對你的身體與心理健康產生深遠的影響。', '參與晨間運動可以提升你的精力、改善心情，並提高一天的專注力。', '身體活動會刺激內啡肽的釋放，減輕壓力並促進幸福感。', '此外，早晨運動有助於建立規律的生活習慣，使保持持續性變得更容易。', '它還能通過調節身體的自然時鐘來改善睡眠品質。', '無論是快走、瑜伽課還是健身房運動，甚至只需20到30分鐘，也能帶來顯著的效果。', '養成晨間運動的習慣，將讓你體驗到更有成效且更健康的生活方式。', '這是一個小小的改變，卻能帶來顯著且持久的益處']:
+                    if len(proposition) and proposition not in self.remove_propositions_list:
                         info["propositions"].append(proposition)
                         print(proposition)
 
