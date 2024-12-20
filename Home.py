@@ -117,8 +117,6 @@ if question := st.chat_input("輸入問題:"):
 
         end_time = time.time()
 
-        feedback = st.feedback("thumbs")
-
         st.caption(f"回應時間:{round(end_time - start_time, 2)}")
 
         if len(sources):
